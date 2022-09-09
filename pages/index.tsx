@@ -2,7 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import Header from "../components/Header/Header";
-import { HomeContainer, LaunchAppButton, Section } from "./homeStyled";
+import HomeContainer, { LaunchAppButton, Section } from "./homeStyled";
 import { useRouter } from "next/router";
 import Arrow from "../public/images/launchApp.svg";
 import Icon from "../public/images/whatIsThis.svg";
@@ -521,9 +521,15 @@ const Home: NextPage = () => {
         </div>
       </div>
 
-      <div style={{ height: 522, backgroundColor: "#8DD911", backgroundImage: "url(/images/transferComponent.svg)",
-    backgroundRepeat: "no-repeat",
-    backgroundPosition: "100%", }}>
+      <div
+        style={{
+          height: 522,
+          backgroundColor: "#8DD911",
+          backgroundImage: "url(/images/transferComponent.svg)",
+          backgroundRepeat: "no-repeat",
+          backgroundPosition: "100%",
+        }}
+      >
         {/* <TransferImage/> */}
       </div>
     </HomeContainer>

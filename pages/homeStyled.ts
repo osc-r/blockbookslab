@@ -79,5 +79,5 @@ const LaunchAppButton = styled.button`
     margin-right: 22px;
   }
 `;
-
-export { HomeContainer, Section, LaunchAppButton };
+export default HomeContainer;
+export { Section, LaunchAppButton };
