@@ -5,6 +5,7 @@ import { theme } from "../components/GlobalStyled/theme";
 import { useRouter } from "next/router";
 import AppLayout from "../layouts/AppLayout/AppLayout";
 import "@rainbow-me/rainbowkit/styles.css";
+import "antd/dist/antd.css";
 
 import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { chain, createClient, WagmiConfig, configureChains } from "wagmi";
