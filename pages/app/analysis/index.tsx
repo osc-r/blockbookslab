@@ -1,5 +1,5 @@
 const AnalysisPage = () => {
-  return "AnalysisPage";
+  return "";
 };
 
 export default AnalysisPage;

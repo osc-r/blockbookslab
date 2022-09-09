@@ -1,5 +1,5 @@
 const AssetPage = () => {
-  return "AssetPage";
+  return "";
 };
 
 export default AssetPage;

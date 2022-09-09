@@ -16,8 +16,9 @@ const AppContainer = styled.div`
   > div {
     display: flex;
     flex: 1;
+    max-width: 1200px;
 
-    margin: 64px;
+    margin: 64px auto;
     box-shadow: 5px 5px 20px rgba(0, 145, 160, 0.2);
     border-radius: 45px;
 
@@ -98,43 +99,25 @@ const ContentContainer = styled.div`
     justify-content: space-between;
 
     button {
-      padding: 12px 24px;
-      border-radius: 16px;
-      border: 1px solid #00c3c1;
+      height: 48px !important;
 
-      color: #00c3c1;
-      font-family: Rubik;
-      font-weight: 500;
-      font-size: 16px;
-      letter-spacing: 1px;
+      padding: 4px 24px !important;
+      border-radius: 16px !important;
+      border: 1px solid #00c3c1 !important;
+
+      color: #00c3c1 !important;
+      font-family: Rubik !important;
+      font-weight: 500 !important;
+      font-size: 16px !important;
+      letter-spacing: 1px !important;
+      background: none !important;
+      box-shadow: none !important;
 
       :hover {
-        transition: all 0.3s ease-in-out;
-        background-color: #00c3c1;
-        color: white;
+        transition: all 0.3s ease-in-out !important;
+        background-color: #00c3c1 !important;
+        color: white !important;
       }
-    }
-  }
-
-  button {
-    height: 48px !important;
-
-    padding: 4px 24px !important;
-    border-radius: 16px !important;
-    border: 1px solid #00c3c1 !important;
-
-    color: #00c3c1 !important;
-    font-family: Rubik !important;
-    font-weight: 500 !important;
-    font-size: 16px !important;
-    letter-spacing: 1px !important;
-    background: none !important;
-    box-shadow: none !important;
-
-    :hover {
-      transition: all 0.3s ease-in-out !important;
-      background-color: #00c3c1 !important;
-      color: white !important;
     }
   }
 `;

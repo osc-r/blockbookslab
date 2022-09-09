@@ -11,7 +11,6 @@ import Supporters from "../public/images/supporters.svg";
 import Planner from "../public/images/noIdeaWhatIsThis.svg";
 import ReportIcon from "../public/images/reportIcon.svg";
 import PlanIcon from "../public/images/planIcon.svg";
-import TransferImage from "../public/images/transferComponent.svg";
 
 const Home: NextPage = () => {
   const router = useRouter();

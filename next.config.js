@@ -20,6 +20,9 @@ const nextConfig = {
       },
     ];
   },
+  images: {
+    domains: ["cryptoicons.org"],
+  },
 };
 
 module.exports = nextConfig;

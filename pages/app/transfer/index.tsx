@@ -1,5 +1,5 @@
 const TransferPage = () => {
-  return "TransferPage";
+  return "";
 };
 
 export default TransferPage;
