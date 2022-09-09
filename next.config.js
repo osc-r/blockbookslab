@@ -2,6 +2,24 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
-}
+  styledComponents: true,
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/,
+      use: ["@svgr/webpack"],
+    });
 
-module.exports = nextConfig
+    return config;
+  },
+  async redirects() {
+    return [
+      {
+        source: "/app",
+        destination: "/app/transaction",
+        permanent: true,
+      },
+    ];
+  },
+};
+
+module.exports = nextConfig;
