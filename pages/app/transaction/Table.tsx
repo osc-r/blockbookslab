@@ -30,6 +30,7 @@ export interface TransactionHistory {
 
   owner?: string;
   fromAddress?: string;
+  fromAddressName?: string;
 }
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -126,7 +127,7 @@ const TableComponent = ({
   onClickRow?: (record: TransactionHistory) => void;
   openModal?: (record: TransactionHistory) => void;
   loading?: boolean;
-  onClickAddress: (addr: string) => void;
+  onClickAddress: (addr: string, name: string) => void;
   onClickMemo: (record: TransactionHistory) => void;
   onClickTag: (record: TransactionHistory) => void;
 }) => {
@@ -277,9 +278,10 @@ const TableComponent = ({
         return (
           <Tooltip placement="bottomLeft" title={addr}>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              {record.to_name && (
+              {record.fromAddressName && (
                 <Text style={{ color: "#30384b", fontWeight: "bold" }}>
-                  {record.to_name}
+                  {record.fromAddressName}
+                  {/* {record.to_name} */}
                 </Text>
               )}
               <Text type="secondary">
@@ -293,7 +295,10 @@ const TableComponent = ({
         return {
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
             e.stopPropagation();
-            onClickAddress(record.from_addr);
+            onClickAddress(
+              record.fromAddress || "",
+              record.fromAddressName || ""
+            );
           },
         };
       },

@@ -54,7 +54,7 @@ const useWalletNameAndAddressForm = () => {
       onSubmit,
       isAddContact,
     }: {
-      isAddContact: string;
+      isAddContact: { addr: string; name: string };
       onSubmit: ({
         name,
         address,
@@ -97,7 +97,10 @@ const useWalletNameAndAddressForm = () => {
             layout="vertical"
             name="bookmarkForm"
             autoComplete="off"
-            initialValues={{ walletAddress: isAddContact }}
+            initialValues={{
+              walletAddress: isAddContact?.addr,
+              walletName: isAddContact?.name,
+            }}
           >
             <Form.Item
               name="walletName"

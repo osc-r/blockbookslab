@@ -5,10 +5,14 @@ export interface AppState {
   wallet: {
     [key: string]: { address: string; isFetchBatch: boolean; name?: string }[];
   };
+  contact: {
+    [key: string]: { address: string; name: string }[];
+  };
 }
 
 const initialState: AppState = {
   wallet: {},
+  contact: {},
 };
 
 export const appSlice = createSlice({
@@ -62,11 +66,34 @@ export const appSlice = createSlice({
         }
       });
     },
+    addContact: (
+      state,
+      action: PayloadAction<{ account: string; addr: string; name: string }>
+    ) => {
+      const account = action.payload.account.toLowerCase();
+      const contact = {
+        address: action.payload.addr,
+        name: action.payload.name,
+      };
+
+      if (state.contact[account]) {
+        const index = state.contact[account].findIndex(
+          (i) => i.address.toLowerCase() === contact.address.toLowerCase()
+        );
+        if (index >= 0) {
+          state.contact[account][index] = contact;
+        } else {
+          state.contact[account].push(contact);
+        }
+      } else {
+        state.contact[account] = [contact];
+      }
+    },
   },
 });
 
 // Action creators are generated for each case reducer function
-export const { newAccount, updateWalletIsFetchBatch, addWallet } =
+export const { newAccount, updateWalletIsFetchBatch, addWallet, addContact } =
   appSlice.actions;
 
 export default appSlice.reducer;

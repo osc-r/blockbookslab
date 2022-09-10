@@ -16,6 +16,7 @@ import {
   addWallet,
   newAccount,
   updateWalletIsFetchBatch,
+  addContact as addContactAction,
 } from "../../../store/appSlice";
 import { RootState } from "../../../store/store";
 
@@ -25,6 +26,7 @@ const TransactionPage = () => {
   const { address, isConnected } = useAccount();
 
   const walletState = useSelector((state: RootState) => state.app.wallet);
+  const contactState = useSelector((state: RootState) => state.app.contact);
   const dispatch = useDispatch();
 
   const [transactionData, setTransactionData] = useState<{
@@ -33,7 +35,10 @@ const TransactionPage = () => {
   const [transactionList, setTransactionList] = useState<TransactionHistory[]>(
     []
   );
-  const [isAddContact, setIsAddContact] = useState("");
+  const [isAddContact, setIsAddContact] = useState<{
+    addr: string;
+    name: string;
+  }>({ addr: "", name: "" });
   const [currentMemo, setCurrentMemo] = useState<string | null>("");
   const [currentTxHash, setCurrentTxHash] = useState<string | null>("");
   const [currentTag, setCurrentTag] = useState<string | null>("");
@@ -61,12 +66,12 @@ const TransactionPage = () => {
   } = useAddTagForm();
 
   const onCLickAddWallet = () => {
-    setIsAddContact("");
+    setIsAddContact({ addr: "", name: "" });
     openModal();
   };
 
-  const onClickAddContact = (addr: string) => {
-    setIsAddContact(addr);
+  const onClickAddContact = (addr: string, name: string) => {
+    setIsAddContact({ addr, name });
     openModal();
   };
 
@@ -115,13 +120,14 @@ const TransactionPage = () => {
   };
 
   const addContact = async ({ name, addr }: { name: string; addr: string }) => {
-    const res = await service.POST_ADD_CONTACT({
-      addr,
-      name,
-    });
-    if (res.success) {
-      refresh();
-    }
+    address && dispatch(addContactAction({ name, addr, account: address }));
+    // const res = await service.POST_ADD_CONTACT({
+    //   addr,
+    //   name,
+    // });
+    // if (res.success) {
+    //   refresh();
+    // }
   };
 
   const onSubmitContactForm = async ({
@@ -131,7 +137,8 @@ const TransactionPage = () => {
     name: string;
     address: string;
   }) => {
-    isAddContact === ""
+    // return console.log({ name, address });
+    isAddContact.addr === ""
       ? addNewWallet({
           name,
           addr: address.toLowerCase(),
@@ -247,28 +254,33 @@ const TransactionPage = () => {
       i.address.toLowerCase()
     );
 
-    console.log({ walletState });
+    // console.log({ walletState, contactState });
 
     for (const [key, value] of Object.entries(transactionData)) {
       const mapped = value.map((item) => {
         const isReceiver = wallets?.includes(item.to_addr.toLowerCase());
         const amount = item.tx_value_eth * (isReceiver ? 1 : -1);
+        const fromTo = isReceiver ? item.from_addr : item.to_addr;
+        const contact = contactState[address?.toLowerCase() || ""]?.find(
+          (c) => c.address.toLowerCase() === fromTo.toLowerCase()
+        )?.name;
 
         return {
           ...item,
-          tx_value: amount,
+          tx_value_usd: amount.toLocaleString(),
 
           owner: walletState[address?.toLowerCase() || ""]?.find(
             (sItem) =>
               sItem.address.toLowerCase() === item.address.toLowerCase()
           )?.name,
-          fromAddress: isReceiver ? item.from_addr : item.to_addr,
-        };
+          fromAddressName: contact ? contact : null,
+          fromAddress: fromTo,
+        } as TransactionHistory;
       });
       list.push(...mapped);
     }
     setTransactionList(list.sort(sort));
-  }, [transactionData, walletState, address]);
+  }, [transactionData, walletState, address, contactState]);
   // const { data: ensName } = useEnsName({ address });
   // const { connect } = useConnect({
   //   connector: new InjectedConnector(),
