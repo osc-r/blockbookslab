@@ -11,6 +11,10 @@ import { getDefaultWallets, RainbowKitProvider } from "@rainbow-me/rainbowkit";
 import { chain, createClient, WagmiConfig, configureChains } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
 
+import { store, persistor } from "../store/store";
+import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+
 const { chains, provider } = configureChains(
   [
     chain.mainnet,
@@ -59,7 +63,11 @@ export default function App({ Component, pageProps }: AppProps) {
         <RainbowKitProvider chains={chains}>
           <ThemeProvider theme={theme}>
             <GlobalStyle />
-            <Container>{render()}</Container>
+            <Provider store={store}>
+              <PersistGate loading={null} persistor={persistor}>
+                <Container>{render()}</Container>
+              </PersistGate>
+            </Provider>
           </ThemeProvider>
         </RainbowKitProvider>
       </WagmiConfig>

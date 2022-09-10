@@ -16,7 +16,7 @@ const AppContainer = styled.div`
   > div {
     display: flex;
     flex: 1;
-    max-width: 1200px;
+    max-width: 1300px;
 
     margin: 64px auto;
     box-shadow: 5px 5px 20px rgba(0, 145, 160, 0.2);
@@ -117,6 +117,15 @@ const ContentContainer = styled.div`
         transition: all 0.3s ease-in-out !important;
         background-color: #00c3c1 !important;
         color: white !important;
+        transform: none;
+
+        div > div > div {
+          > div,
+          > svg {
+            color: white;
+            transition: 0.125s ease;
+          }
+        }
       }
     }
   }

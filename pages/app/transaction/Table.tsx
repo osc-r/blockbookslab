@@ -8,6 +8,7 @@ import styled from "styled-components";
 import ArrowLeft from "../../../public/images/arrowLeft.svg";
 import ArrowRight from "../../../public/images/arrowRight.svg";
 import { ethers } from "ethers";
+import LetteredAvatar from "lettered-avatar";
 
 const { Text } = Typography;
 
@@ -127,6 +128,35 @@ const TableComponent = ({
 }) => {
   const defaultColumns = [
     {
+      title: "Wallet",
+      dataIndex: "owner",
+      width: "10%",
+      render: (_: any, record: TransactionHistory) => {
+        return (
+          <Tooltip placement="bottomLeft" title={record.owner || "You"}>
+            <span>
+              <LetteredAvatar
+                name={record.owner || "Y"}
+                options={{
+                  size: 32,
+                  twoLetter: false,
+                  shape: "round",
+                  bgColor: "",
+                  href: "",
+                  target: "_blank",
+                  tooltip: false,
+                  tooltipTitle: "CEO Avatar",
+                  imgClass: "image-responsive user-image",
+                  imgWidth: 150,
+                  imgHeight: 100,
+                }}
+              />
+            </span>
+          </Tooltip>
+        );
+      },
+    },
+    {
       title: "Date",
       width: "15%",
       render: (_: any, record: TransactionHistory) => {
@@ -167,14 +197,23 @@ const TableComponent = ({
     },
     {
       title: "Tag",
-      width: "15%",
+      width: "20%",
       render: (_: any, record: TransactionHistory, index: number) => {
-        return record.tx_label ? (
-          <Tag color="green" key="1">
-            {record.tx_label}
-          </Tag>
-        ) : (
-          <Text style={{ color: "#D7DDE5" }}>Add Tag</Text>
+        return (
+          <React.Fragment>
+            {record.tx_action && (
+              <Tag color="green" key="1">
+                {record.tx_action}
+              </Tag>
+            )}
+            {record.tx_label ? (
+              <Tag color="green" key="2">
+                {record.tx_label}
+              </Tag>
+            ) : record.tx_action ? null : (
+              <Text style={{ color: "#D7DDE5" }}>Add Tag</Text>
+            )}
+          </React.Fragment>
         );
       },
       onCell: (record: TransactionHistory, rowIndex: number) => {
@@ -182,7 +221,6 @@ const TableComponent = ({
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
             e.stopPropagation();
             onClickTag(record);
-            console.log(record, rowIndex);
           },
         };
       },
@@ -193,6 +231,17 @@ const TableComponent = ({
       align: "right",
       width: "20%",
       render: (_: any, record: TransactionHistory) => {
+        const RATE = 1500;
+        const amount = Number(
+          ethers.utils.formatEther(
+            (record.tx_value >= 0
+              ? record.tx_value
+              : record.tx_value * -1
+            ).toString()
+          )
+        ).toFixed(4);
+        const isPositive = record.tx_value > 0;
+
         return (
           <div
             style={{
@@ -202,22 +251,15 @@ const TableComponent = ({
           >
             <Text
               style={{
-                color: "#219653",
+                color: isPositive ? "#219653" : "#d82a58",
                 fontWeight: 700,
                 fontFamily: "Roboto",
               }}
             >
-              +$
-              {(
-                Number(ethers.utils.formatEther(record.tx_value.toString())) *
-                1600
-              ).toFixed(8)}
+              {isPositive ? "+" : "-"}${(Number(amount) * RATE).toFixed(4)}
             </Text>
             <Text type="secondary">
-              {Number(
-                ethers.utils.formatEther(record.tx_value.toString())
-              ).toFixed(8)}{" "}
-              ETH ({(1600).toFixed(2)} USD/ETH)
+              {amount} ETH ({RATE.toFixed(2)} USD/ETH)
             </Text>
           </div>
         );
@@ -228,14 +270,15 @@ const TableComponent = ({
       dataIndex: "fromAddress", //toAddress
       width: "15%",
       render: (_: any, record: TransactionHistory) => {
-        const addr = record?.type === "in" ? record.from_addr : record.to_addr;
-        const name = record.to_addr;
+        const addr = record?.fromAddress;
         return (
           <Tooltip placement="bottomLeft" title={addr}>
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <Text style={{ color: "#30384b", fontWeight: "bold" }}>
-                {/* {name || "Test"} */}
-              </Text>
+              {record.to_name && (
+                <Text style={{ color: "#30384b", fontWeight: "bold" }}>
+                  {record.to_name}
+                </Text>
+              )}
               <Text type="secondary">
                 {`${addr.slice(0, 5)}...${addr.slice(addr.length - 4)}`}
               </Text>
@@ -277,6 +320,7 @@ const TableComponent = ({
           return original;
         },
       }}
+      rowKey="tx_hash"
       pagination={false}
       loading={loading}
       onRow={(record) => {

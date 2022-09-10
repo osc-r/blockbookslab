@@ -24,6 +24,7 @@ import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 // import { currencyFormat, weiToEther } from "../../services/numberServices";
 import service from "../../services/apiService";
 import { TransactionHistory } from "../../pages/app/transaction/Table";
+import { ethers } from "ethers";
 
 const { Text, Title } = Typography;
 
@@ -136,14 +137,23 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
             <div className={styles.currencyCol}>
               {selectedTx && (
                 <Title style={{ margin: 0, marginRight: 8 }} level={2}>
+                  {Number(
+                    ethers.utils.formatEther(
+                      (selectedTx.tx_value >= 0
+                        ? selectedTx.tx_value
+                        : selectedTx.tx_value * -1
+                      ).toString()
+                    )
+                  ).toFixed(8)}{" "}
+                  ETH
                   {/* {currencyFormat(weiToEther(selectedTx.tokenAmount))}{" "} */}
-                  {selectedTx?.tokenSymbol}
+                  {/* {selectedTx?.tokenSymbol} */}
                 </Title>
               )}
               {isLoading ? (
                 <Image
                   alt="dsd"
-                  src={`https://cryptoicons.org/api/color/${selectedTx?.tokenSymbol?.toLowerCase()}/600`}
+                  src={`https://cryptoicons.org/api/color/${"eth"}/600`}
                   width={42}
                   height={42}
                   onError={onError}
@@ -154,7 +164,11 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
                 />
               )}
             </div>
-            <Title level={4}>Deposit Success</Title>
+            <Title level={4}>
+              {Number(selectedTx?.tx_value) > 0
+                ? "Deposit Success"
+                : "Withdraw Success"}
+            </Title>
             <Text>
               {selectedTx &&
                 format(
@@ -238,11 +252,16 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
               <Col span={24}>
                 <Form.Item name="tags" label="Tags">
                   <Select
-                    mode="multiple"
                     showArrow
                     tagRender={tagRender}
-                    defaultValue={selectedTx ? [selectedTx.tx_label] : []}
-                    options={tags.map((tag) => ({ value: tag.name }))}
+                    // defaultValue={
+                    //   selectedTx ? selectedTx.tags.map((tag) => tag) : []
+                    // }
+                    options={[
+                      { value: "Equipment" },
+                      { value: "Salary" },
+                      { value: "Contact" },
+                    ]}
                   />
                 </Form.Item>
               </Col>
