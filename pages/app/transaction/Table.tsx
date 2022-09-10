@@ -18,7 +18,7 @@ export interface TransactionHistory {
   from_addr: string;
   to_addr: string;
   to_name: string | null;
-  tx_value: number;
+  tx_value_eth: number;
   tx_fee: number;
   tx_fee_eth: number;
   tx_timestamp: number;
@@ -26,6 +26,7 @@ export interface TransactionHistory {
   tx_action_full: string | null;
   tx_label: string | null;
   tx_memo: string | null;
+  tx_value_usd: string | null;
 
   owner?: string;
   fromAddress?: string;
@@ -141,16 +142,16 @@ const TableComponent = ({
               <LetteredAvatar
                 name={record.owner || "Y"}
                 options={{
-                  size: 32,
+                  size: 22,
                   twoLetter: false,
                   shape: "round",
                   bgColor: "",
                   href: "",
                   target: "_blank",
                   tooltip: false,
-                  tooltipTitle: "CEO Avatar",
+                  tooltipTitle: "",
                   imgClass: "image-responsive user-image",
-                  imgWidth: 150,
+                  imgWidth: 100,
                   imgHeight: 100,
                 }}
               />
@@ -234,16 +235,14 @@ const TableComponent = ({
       align: "right",
       width: "20%",
       render: (_: any, record: TransactionHistory) => {
-        const RATE = 1500;
+        const RATE =
+          Number(record.tx_value_usd) / Number(record.tx_value_eth) || 0;
         const amount = Number(
-          ethers.utils.formatEther(
-            (record.tx_value >= 0
-              ? record.tx_value
-              : record.tx_value * -1
-            ).toString()
-          )
+          record.tx_value_eth >= 0
+            ? record.tx_value_eth
+            : record.tx_value_eth * -1
         ).toFixed(4);
-        const isPositive = record.tx_value > 0;
+        const isPositive = record.tx_value_eth > 0;
 
         return (
           <div
@@ -262,7 +261,8 @@ const TableComponent = ({
               {isPositive ? "+" : "-"}${(Number(amount) * RATE).toFixed(4)}
             </Text>
             <Text type="secondary">
-              {amount} ETH ({RATE.toFixed(2)} USD/ETH)
+              {amount} ETH
+              <div>({RATE.toFixed(2)} USD/ETH)</div>
             </Text>
           </div>
         );

@@ -252,7 +252,7 @@ const TransactionPage = () => {
     for (const [key, value] of Object.entries(transactionData)) {
       const mapped = value.map((item) => {
         const isReceiver = wallets?.includes(item.to_addr.toLowerCase());
-        const amount = item.tx_value * (isReceiver ? 1 : -1);
+        const amount = item.tx_value_eth * (isReceiver ? 1 : -1);
 
         return {
           ...item,
@@ -279,8 +279,8 @@ const TransactionPage = () => {
     <TransactionContainer>
       {connectedState && (
         <div className="action-wrapper">
-          <button>Sort</button>
-          <button>Filter</button>
+          <button disabled>Sort</button>
+          <button disabled>Filter</button>
           <button className="add-wallet-btn-m" onClick={onCLickAddWallet}>
             + Wallet
           </button>

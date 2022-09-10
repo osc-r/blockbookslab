@@ -16,6 +16,11 @@ const TransactionContainer = styled.div`
     font-size: 16px;
   }
 
+  button:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+
   .action-wrapper {
     display: flex;
     justify-content: flex-end;

@@ -45,7 +45,6 @@ const tagRender = (props: CustomTagProps) => {
     event.preventDefault();
     event.stopPropagation();
   };
-  console.log({ label, value });
   return (
     <Tag
       color={colorMapping(label as string)}
@@ -138,12 +137,10 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
               {selectedTx && (
                 <Title style={{ margin: 0, marginRight: 8 }} level={2}>
                   {Number(
-                    ethers.utils.formatEther(
-                      (selectedTx.tx_value >= 0
-                        ? selectedTx.tx_value
-                        : selectedTx.tx_value * -1
-                      ).toString()
-                    )
+                    (selectedTx.tx_value_eth >= 0
+                      ? selectedTx.tx_value_eth
+                      : selectedTx.tx_value_eth * -1
+                    ).toString()
                   ).toFixed(8)}{" "}
                   ETH
                   {/* {currencyFormat(weiToEther(selectedTx.tokenAmount))}{" "} */}
@@ -165,7 +162,7 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
               )}
             </div>
             <Title level={4}>
-              {Number(selectedTx?.tx_value) > 0
+              {Number(selectedTx?.tx_value_eth) > 0
                 ? "Deposit Success"
                 : "Withdraw Success"}
             </Title>
