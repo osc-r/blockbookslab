@@ -7,23 +7,24 @@ import Image from "next/image";
 import styled from "styled-components";
 import ArrowLeft from "../../../public/images/arrowLeft.svg";
 import ArrowRight from "../../../public/images/arrowRight.svg";
+import { ethers } from "ethers";
 
 const { Text } = Typography;
 
 export interface TransactionHistory {
-  id: string;
-  txHash: string;
-  description: string | null;
-  blockDate: string;
-  fromAddress: string;
-  toAddress: string;
-  blockNumber: number;
-  tokenSymbol: string;
-  tokenAmount: string;
-
-  tags: string[];
-  type: string;
-  toMemoName: string;
+  tx_hash: string;
+  address: string;
+  from_addr: string;
+  to_addr: string;
+  to_name: string | null;
+  tx_value: number;
+  tx_fee: number;
+  tx_fee_eth: number;
+  tx_timestamp: number;
+  tx_action: string | null;
+  tx_action_full: string | null;
+  tx_label: string | null;
+  tx_memo: string | null;
 }
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -42,21 +43,29 @@ const CurrencyIcon = ({ record }: { record: TransactionHistory }) => {
   }, [record]);
 
   return (
-    <div key={record.id}>
+    <div key={record.tx_hash}>
       {isLoading ? (
         <Image
-          key={record.id}
+          key={record.tx_hash}
           alt="icon"
-          src={`https://cryptoicons.org/api/color/${record.tokenSymbol.toLowerCase()}/600`}
+          src={`https://cryptoicons.org/api/color/${record?.tokenSymbol?.toLowerCase()}/600`}
           width={24}
           height={24}
           onError={onError}
         />
       ) : null}
-      <Text style={{ marginLeft: 8 }}>{record.tokenSymbol}</Text>
+      <Text style={{ marginLeft: 8 }}>{record?.tokenSymbol}</Text>
     </div>
   );
 };
+
+/*
+ 0.149 => 0.15
+ 0.00151 => 0.0015
+
+
+ else fix 4 decimal point
+ */
 
 const TableWithStyled = styled(Table)`
   .ant-table {
@@ -79,11 +88,17 @@ const TableWithStyled = styled(Table)`
   tr:last-child > td {
     border: none;
   }
+  tbody > tr {
+    max-height: 100px;
+  }
+  .ant-table-cell-scrollbar {
+    box-shadow: none;
+  }
   .ant-pagination-item {
     border: none;
+    border-radius: 100%;
   }
   .ant-pagination-item-active {
-    border-radius: 100%;
     background: #00c3c1;
     a {
       color: white;
@@ -107,8 +122,8 @@ const TableComponent = ({
   openModal?: (record: TransactionHistory) => void;
   loading?: boolean;
   onClickAddress: (addr: string) => void;
-  onClickMemo: (memo: string) => void;
-  onClickTag: Function;
+  onClickMemo: (record: TransactionHistory) => void;
+  onClickTag: (record: TransactionHistory) => void;
 }) => {
   const defaultColumns = [
     {
@@ -118,11 +133,11 @@ const TableComponent = ({
         return (
           <div style={{ display: "flex", flexDirection: "column" }}>
             <Text style={{ color: "#30384b" }}>
-              {format(new Date(record.blockDate), "d MMM yyyy")}
+              {format(new Date(record.tx_timestamp * 1000), "d MMM yyyy")}
             </Text>
             <Text type="secondary">
               {format(
-                new Date(record.blockDate),
+                new Date(record.tx_timestamp * 1000),
                 "hh:mm aaaaa'm'"
               ).toUpperCase()}
             </Text>
@@ -138,13 +153,13 @@ const TableComponent = ({
         return {
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
             e.stopPropagation();
-            onClickMemo(`${record.description}`);
+            onClickMemo(record);
           },
         };
       },
       render: (_: any, record: TransactionHistory) => {
-        return record.description ? (
-          <Text style={{ color: "#30384b" }}>{record.description}</Text>
+        return record.tx_memo ? (
+          <Text style={{ color: "#30384b" }}>{record.tx_memo}</Text>
         ) : (
           <Text style={{ color: "#D7DDE5" }}>Add Memo</Text>
         );
@@ -154,9 +169,9 @@ const TableComponent = ({
       title: "Tag",
       width: "15%",
       render: (_: any, record: TransactionHistory, index: number) => {
-        return record.tags.length > 0 ? (
+        return record.tx_label ? (
           <Tag color="green" key="1">
-            {record.tags[0]}
+            {record.tx_label}
           </Tag>
         ) : (
           <Text style={{ color: "#D7DDE5" }}>Add Tag</Text>
@@ -166,7 +181,7 @@ const TableComponent = ({
         return {
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
             e.stopPropagation();
-            onClickTag();
+            onClickTag(record);
             console.log(record, rowIndex);
           },
         };
@@ -176,7 +191,7 @@ const TableComponent = ({
       title: "Amount",
       dataIndex: "tokenAmount",
       align: "right",
-      width: "15%",
+      width: "20%",
       render: (_: any, record: TransactionHistory) => {
         return (
           <div
@@ -192,9 +207,18 @@ const TableComponent = ({
                 fontFamily: "Roboto",
               }}
             >
-              +$24,000
+              +$
+              {(
+                Number(ethers.utils.formatEther(record.tx_value.toString())) *
+                1600
+              ).toFixed(8)}
             </Text>
-            <Text type="secondary">12 ETH(2,000.00)</Text>
+            <Text type="secondary">
+              {Number(
+                ethers.utils.formatEther(record.tx_value.toString())
+              ).toFixed(8)}{" "}
+              ETH ({(1600).toFixed(2)} USD/ETH)
+            </Text>
           </div>
         );
       },
@@ -204,14 +228,13 @@ const TableComponent = ({
       dataIndex: "fromAddress", //toAddress
       width: "15%",
       render: (_: any, record: TransactionHistory) => {
-        const addr =
-          record.type === "in" ? record.fromAddress : record.toAddress;
-        const name = record.toMemoName;
+        const addr = record?.type === "in" ? record.from_addr : record.to_addr;
+        const name = record.to_addr;
         return (
           <Tooltip placement="bottomLeft" title={addr}>
             <div style={{ display: "flex", flexDirection: "column" }}>
               <Text style={{ color: "#30384b", fontWeight: "bold" }}>
-                {name || "Test"}
+                {/* {name || "Test"} */}
               </Text>
               <Text type="secondary">
                 {`${addr.slice(0, 5)}...${addr.slice(addr.length - 4)}`}
@@ -224,7 +247,7 @@ const TableComponent = ({
         return {
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
             e.stopPropagation();
-            onClickAddress(record.fromAddress);
+            onClickAddress(record.from_addr);
           },
         };
       },
@@ -236,11 +259,12 @@ const TableComponent = ({
       rowClassName={"editable-row"}
       dataSource={data}
       columns={defaultColumns as ColumnTypes}
+      scroll={data.length > 0 ? { y: 99 * 5 } : undefined}
       pagination={{
         ...pagination,
         position: ["bottomCenter"],
         defaultCurrent: 3,
-        total: 500,
+        total: 400 - 4,
         showSizeChanger: false,
         showLessItems: true,
         itemRender: (_, type, original) => {
@@ -253,6 +277,7 @@ const TableComponent = ({
           return original;
         },
       }}
+      pagination={false}
       loading={loading}
       onRow={(record) => {
         return {

@@ -109,14 +109,14 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
               <Marquee speed={30} pauseOnHover gradient={false}>
                 <a
                   href={`https://etherscan.io/tx/${
-                    selectedTx && selectedTx.txHash
+                    selectedTx && selectedTx.tx_hash
                   }`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >
                   View transaction:{" "}
                   <span style={{ color: "blue" }}>{`https://etherscan.io/tx/${
-                    selectedTx && selectedTx.txHash
+                    selectedTx && selectedTx.tx_hash
                   }`}</span>
                 </a>
               </Marquee>
@@ -137,13 +137,13 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
               {selectedTx && (
                 <Title style={{ margin: 0, marginRight: 8 }} level={2}>
                   {/* {currencyFormat(weiToEther(selectedTx.tokenAmount))}{" "} */}
-                  {selectedTx.tokenSymbol}
+                  {selectedTx?.tokenSymbol}
                 </Title>
               )}
               {isLoading ? (
                 <Image
                   alt="dsd"
-                  src={`https://cryptoicons.org/api/color/${selectedTx?.tokenSymbol.toLowerCase()}/600`}
+                  src={`https://cryptoicons.org/api/color/${selectedTx?.tokenSymbol?.toLowerCase()}/600`}
                   width={42}
                   height={42}
                   onError={onError}
@@ -157,7 +157,10 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
             <Title level={4}>Deposit Success</Title>
             <Text>
               {selectedTx &&
-                format(new Date(selectedTx.blockDate), "dd MMM yyyy HH:mm:ss")}
+                format(
+                  new Date(selectedTx?.tx_timestamp * 1000),
+                  "dd MMM yyyy HH:mm:ss"
+                )}
             </Text>
           </div>
           <br />
@@ -166,17 +169,18 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <Tooltip
                   placement="bottomLeft"
-                  title={selectedTx && selectedTx.fromAddress}
+                  title={selectedTx && selectedTx.from_addr}
                 >
                   <Input
                     readOnly
                     value={
                       selectedTx &&
-                      `${selectedTx.fromAddress.slice(
+                      selectedTx.from_addr &&
+                      `${selectedTx.from_addr.slice(
                         0,
                         5
-                      )}...${selectedTx.fromAddress.slice(
-                        selectedTx.fromAddress.length - 4
+                      )}...${selectedTx.from_addr.slice(
+                        selectedTx.from_addr.length - 4
                       )}`
                     }
                     addonBefore={"From"}
@@ -195,17 +199,18 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
                 </div>
                 <Tooltip
                   placement="bottomRight"
-                  title={selectedTx && selectedTx.toAddress}
+                  title={selectedTx && selectedTx.to_addr}
                 >
                   <Input
                     readOnly
                     value={
                       selectedTx &&
-                      `${selectedTx.toAddress.slice(
+                      selectedTx.to_addr &&
+                      `${selectedTx.to_addr.slice(
                         0,
                         5
-                      )}...${selectedTx.toAddress.slice(
-                        selectedTx.toAddress.length - 4
+                      )}...${selectedTx.to_addr.slice(
+                        selectedTx.to_addr.length - 4
                       )}`
                     }
                     addonBefore={"To"}
@@ -225,8 +230,8 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
             disabled={isDisabled}
             onFinish={updateTransaction}
             initialValues={{
-              description: selectedTx && selectedTx.description,
-              tags: selectedTx ? selectedTx.tags.map((tag) => tag) : [],
+              description: selectedTx && selectedTx.tx_memo,
+              tags: selectedTx ? [selectedTx.tx_label] : [],
             }}
           >
             <Row gutter={16}>
@@ -236,9 +241,7 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
                     mode="multiple"
                     showArrow
                     tagRender={tagRender}
-                    defaultValue={
-                      selectedTx ? selectedTx.tags.map((tag) => tag) : []
-                    }
+                    defaultValue={selectedTx ? [selectedTx.tx_label] : []}
                     options={tags.map((tag) => ({ value: tag.name }))}
                   />
                 </Form.Item>

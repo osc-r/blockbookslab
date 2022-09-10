@@ -63,14 +63,14 @@ const service = {
   GET_ACTION_BY_TX_HASH: (txHash: string) => {
     return serviceInstance("GET", `/action/${txHash}`);
   },
-  POST_ADD_LABEL_ON_TX: ({
+  PUT_ADD_LABEL_ON_TX: ({
     txHash,
     label,
   }: {
     txHash: string;
     label: string;
   }) => {
-    return serviceInstance("POST", `/label/${txHash}/${label}`);
+    return serviceInstance("PUT", `/label/${txHash}/${label}`);
   },
   GET_LABEL_BY_TX_HASH: (txHash: string) => {
     return serviceInstance("GET", `/label/${txHash}}`);
@@ -80,6 +80,9 @@ const service = {
   },
   GET_CONTACT_BY_ADDR: (addr: string) => {
     return serviceInstance("POST", `/contact/${addr}`);
+  },
+  PUT_ADD_MEMO: ({ txHash, memo }: { txHash: string; memo: string | null }) => {
+    return serviceInstance("PUT", `/memo/${txHash}/${memo}`);
   },
 };
 

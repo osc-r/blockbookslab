@@ -74,7 +74,7 @@ const AppLayout = ({
         <ContentContainer>
           <div className="wrapper">
             <span className="title">{title}</span>
-            <ConnectButton label="Connect Wallet +" />
+            <ConnectButton label="Connect Wallet +" chainStatus="none" />
           </div>
           {children}
         </ContentContainer>

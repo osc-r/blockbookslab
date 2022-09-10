@@ -54,7 +54,7 @@ const useTxMemoForm = () => {
       onSubmit,
       memo,
     }: {
-      memo: string;
+      memo: string | null;
       onSubmit: ({ memo }: { memo: string }) => Promise<void>;
     }) => {
       const [form] = Form.useForm();

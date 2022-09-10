@@ -53,10 +53,10 @@ const useAddTagForm = () => {
   const TagModal = useMemo(() => {
     const ModalComponent = ({
       onSubmit,
-      memo,
+      tags,
     }: {
-      memo: string;
-      onSubmit: ({ memo }: { memo: string }) => Promise<void>;
+      tags: string | null;
+      onSubmit: ({ tags }: { tags: string }) => Promise<void>;
     }) => {
       const [form] = Form.useForm();
 
@@ -64,7 +64,7 @@ const useAddTagForm = () => {
         form
           .validateFields()
           .then((data) => {
-            onSubmit({ memo: data.memo });
+            onSubmit({ tags: data.tags });
             setVisible(false);
           })
           .catch((err) => console.log(err));
@@ -91,11 +91,10 @@ const useAddTagForm = () => {
             layout="vertical"
             name="bookmarkForm"
             autoComplete="off"
-            initialValues={{ memo }}
+            initialValues={{ tags }}
           >
             <Form.Item name="tags" label="Tags">
               <Select
-                mode="multiple"
                 showArrow
                 tagRender={tagRender}
                 // defaultValue={
