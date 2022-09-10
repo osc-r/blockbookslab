@@ -134,7 +134,8 @@ const TableComponent = ({
       dataIndex: "description",
       onCell: (record: TransactionHistory, rowIndex: number) => {
         return {
-          onClick: () => {
+          onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
+            e.stopPropagation();
             onClickMemo(`${record.description}`);
           },
         };
@@ -161,7 +162,8 @@ const TableComponent = ({
       },
       onCell: (record: TransactionHistory, rowIndex: number) => {
         return {
-          onClick: () => {
+          onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
+            e.stopPropagation();
             console.log(record, rowIndex);
           },
         };
@@ -217,7 +219,8 @@ const TableComponent = ({
       },
       onCell: (record: TransactionHistory, rowIndex: number) => {
         return {
-          onClick: () => {
+          onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
+            e.stopPropagation();
             onClickAddress(record.fromAddress);
           },
         };
@@ -251,7 +254,7 @@ const TableComponent = ({
       onRow={(record) => {
         return {
           onClick: () => {
-            // onClickRow(record as TransactionHistory);
+            onClickRow && onClickRow(record as TransactionHistory);
           },
         };
       }}

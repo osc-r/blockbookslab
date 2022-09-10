@@ -1,0 +1,7 @@
+.currencyCol {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+
+  margin: 24px 0;
+}

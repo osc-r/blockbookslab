@@ -1,19 +1,38 @@
 import TransactionContainer from "./transactionStyled";
 import { useAccount, useConnect, useEnsName } from "wagmi";
 import { InjectedConnector } from "wagmi/connectors/injected";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import AddWallet from "../../../public/images/addWallet.svg";
 import TableComponent from "./Table";
 import useWalletNameAndAddressForm from "../../../components/useWalletNameAndAddressForm";
 import useTxMemoForm from "../../../components/useTxMemoForm";
+import service from "../../../services/apiService";
+import useTransactionHistoryDrawer from "../../../components/useTransactionHistoryDrawer";
 
 const TransactionPage = () => {
   const [transactionList, setTransactionList] = useState([]);
   const [isAddContact, setIsAddContact] = useState("");
   const [currentMemo, setCurrentMemo] = useState("");
 
+  const [isTxFetching, setIsTxFetching] = useState(false);
+
   const { WalletAddressModal, openModal, closeModal } =
     useWalletNameAndAddressForm();
+  const { openDrawer, Drawer, closeDrawer } = useTransactionHistoryDrawer({
+    id: "b26d6b7b-69fc-4c05-8ba4-20551c4c7ae9",
+    txHash:
+      "0xed980aee9b563af6fc2be47c643ce8d57500c32764aae16931a625897c4d8187",
+    description: "",
+    blockDate: "2022-08-12T07:40:20.000Z",
+    fromAddress: "0x4fb8bbbdc0da1b607ceb337bb70dd33a97f65aca",
+    toAddress: "0xc5102fe9359fd9a28f877a67e36b0f050d81a3cc",
+    blockNumber: 14925529,
+    tokenSymbol: "ETH",
+    tokenAmount: "0",
+    tags: [],
+    type: "",
+    toMemoName: "",
+  });
 
   const {
     MemoModal,
@@ -36,7 +55,54 @@ const TransactionPage = () => {
     openMemoModal();
   };
 
-  // const { address, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
+
+  const getTx = useCallback(async () => {
+    setIsTxFetching(true);
+
+    if (address) {
+      const { success, data } = await service.GET_TRANSACTIONS(address);
+      if (success) {
+        setTransactionList(data);
+      }
+      setIsTxFetching(false);
+    }
+  }, [address]);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval>;
+
+    const init = async () => {
+      if (isConnected && address) {
+        setIsTxFetching(true);
+
+        const res = await service.POST_FETCH_TRANSACTIONS(address);
+
+        const callback = async () => {
+          const { success, data } = await service.GET_FETCH_TRANSACTIONS_STATUS(
+            address
+          );
+          if (success && data.task_status === "SUCCESS") {
+            getTx();
+            clearInterval(timer);
+          }
+        };
+
+        if (res.success) {
+          timer = setInterval(callback, 30_000);
+        }
+      } else {
+        setIsTxFetching(false);
+      }
+    };
+
+    init();
+    console.log({ address, isConnected });
+
+    return () => {
+      timer && clearInterval(timer);
+    };
+  }, [address, isConnected, getTx]);
   // const { data: ensName } = useEnsName({ address });
   // const { connect } = useConnect({
   //   connector: new InjectedConnector(),
@@ -64,6 +130,7 @@ const TransactionPage = () => {
         }}
         memo={currentMemo}
       />
+      <Drawer tags={[]} isDisabled={true} updateTransaction={() => {}} />
       {/* <button className="add-wallet-btn-l">
         <AddWallet />
         <span>Add new Wallet</span>
@@ -104,6 +171,7 @@ const TransactionPage = () => {
         ]}
         onClickAddress={onClickAddContact}
         onClickMemo={onClickMemo}
+        onClickRow={openDrawer}
       />
     </TransactionContainer>
   );
