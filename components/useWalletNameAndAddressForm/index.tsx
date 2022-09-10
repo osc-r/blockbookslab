@@ -82,7 +82,7 @@ const useWalletNameAndAddressForm = () => {
 
       return (
         <ModalWithStyled
-          title={isAddContact ? "Save Address" : "Add New Wallet"}
+          title={isAddContact.addr ? "Save Address" : "Add New Wallet"}
           visible={visible}
           onOk={handleOk}
           onCancel={handleCancel}
@@ -124,7 +124,7 @@ const useWalletNameAndAddressForm = () => {
             >
               <Input
                 addonBefore="Wallet Address"
-                disabled={Boolean(isAddContact)}
+                disabled={Boolean(isAddContact.addr)}
               />
             </Form.Item>
           </Form>
