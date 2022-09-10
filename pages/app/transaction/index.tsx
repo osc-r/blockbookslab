@@ -37,7 +37,7 @@ const TransactionPage = () => {
   const [currentMemo, setCurrentMemo] = useState<string | null>("");
   const [currentTxHash, setCurrentTxHash] = useState<string | null>("");
   const [currentTag, setCurrentTag] = useState<string | null>("");
-  const [selectedTx, setSelectedTx] = useState();
+  const [selectedTx, setSelectedTx] = useState<TransactionHistory>();
 
   const [connectedState, setConnectedState] = useState(false);
 

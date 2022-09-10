@@ -26,6 +26,9 @@ export interface TransactionHistory {
   tx_action_full: string | null;
   tx_label: string | null;
   tx_memo: string | null;
+
+  owner?: string;
+  fromAddress?: string;
 }
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -49,13 +52,13 @@ const CurrencyIcon = ({ record }: { record: TransactionHistory }) => {
         <Image
           key={record.tx_hash}
           alt="icon"
-          src={`https://cryptoicons.org/api/color/${record?.tokenSymbol?.toLowerCase()}/600`}
+          src={`https://cryptoicons.org/api/color/${"eth"}/600`}
           width={24}
           height={24}
           onError={onError}
         />
       ) : null}
-      <Text style={{ marginLeft: 8 }}>{record?.tokenSymbol}</Text>
+      <Text style={{ marginLeft: 8 }}>{"ETH"}</Text>
     </div>
   );
 };
@@ -270,7 +273,7 @@ const TableComponent = ({
       dataIndex: "fromAddress", //toAddress
       width: "15%",
       render: (_: any, record: TransactionHistory) => {
-        const addr = record?.fromAddress;
+        const addr = record?.fromAddress || "";
         return (
           <Tooltip placement="bottomLeft" title={addr}>
             <div style={{ display: "flex", flexDirection: "column" }}>
@@ -303,23 +306,23 @@ const TableComponent = ({
       dataSource={data}
       columns={defaultColumns as ColumnTypes}
       scroll={data.length > 0 ? { y: 99 * 5 } : undefined}
-      pagination={{
-        ...pagination,
-        position: ["bottomCenter"],
-        defaultCurrent: 3,
-        total: 400 - 4,
-        showSizeChanger: false,
-        showLessItems: true,
-        itemRender: (_, type, original) => {
-          if (type === "prev") {
-            return <ArrowLeft />;
-          }
-          if (type === "next") {
-            return <ArrowRight />;
-          }
-          return original;
-        },
-      }}
+      // pagination={{
+      //   ...pagination,
+      //   position: ["bottomCenter"],
+      //   defaultCurrent: 3,
+      //   total: 400 - 4,
+      //   showSizeChanger: false,
+      //   showLessItems: true,
+      //   itemRender: (_, type, original) => {
+      //     if (type === "prev") {
+      //       return <ArrowLeft />;
+      //     }
+      //     if (type === "next") {
+      //       return <ArrowRight />;
+      //     }
+      //     return original;
+      //   },
+      // }}
       rowKey="tx_hash"
       pagination={false}
       loading={loading}
