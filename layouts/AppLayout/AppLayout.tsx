@@ -26,6 +26,8 @@ const AppLayout = ({
   const router = useRouter();
   const pathArr = router.pathname.split("/");
 
+  const active = false;
+
   return (
     <AppContainer>
       <div>
@@ -41,24 +43,36 @@ const AppLayout = ({
                 </span>
               </Link>
             </li>
-            <li className={clsx(pathArr[2] === "transfer" && "active")}>
-              <Link href={"/app/transfer"}>
+            <li
+              className={clsx(
+                pathArr[2] === "transfer" && "active",
+                "disabled"
+              )}
+            >
+              <Link href={active ? "/app/transfer" : "#"}>
                 <span>
                   <TransferIcon className="icon" />
                   <span>Transfer</span>
                 </span>
               </Link>
             </li>
-            <li className={clsx(pathArr[2] === "asset" && "active")}>
-              <Link href={"/app/asset"}>
+            <li
+              className={clsx(pathArr[2] === "asset" && "active", "disabled")}
+            >
+              <Link href={active ? "/app/asset" : "#"}>
                 <span>
                   <AssetIcon className="icon" />
                   <span>Asset</span>
                 </span>
               </Link>
             </li>
-            <li className={clsx(pathArr[2] === "analysis" && "active")}>
-              <Link href={"/app/analysis"}>
+            <li
+              className={clsx(
+                pathArr[2] === "analysis" && "active",
+                "disabled"
+              )}
+            >
+              <Link href={active ? "/app/analysis" : "#"}>
                 <span>
                   <AnalysisIcon className="icon" />
                   <span>Analysis</span>

@@ -78,6 +78,12 @@ const SideBarContainer = styled.nav`
       fill: white;
     }
   }
+  .disabled {
+    opacity: 0.25;
+    > span {
+      cursor: not-allowed;
+    }
+  }
 `;
 
 const ContentContainer = styled.div`

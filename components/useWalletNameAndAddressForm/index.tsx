@@ -90,6 +90,7 @@ const useWalletNameAndAddressForm = () => {
           cancelButtonProps={{ disabled: false }}
           centered
           okText={"Confirm"}
+          width={600}
         >
           <Form
             form={form}
