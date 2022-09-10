@@ -26,7 +26,7 @@ export interface TransactionHistory {
   tx_action_full: string | null;
   tx_label: string | null;
   tx_memo: string | null;
-  tx_value_usd: string | null;
+  tx_value_usd: number | null;
 
   owner?: string;
   fromAddress?: string;
@@ -236,14 +236,22 @@ const TableComponent = ({
       align: "right",
       width: "20%",
       render: (_: any, record: TransactionHistory) => {
+        const format = (number: number) =>
+          new Intl.NumberFormat("en-US", {
+            minimumFractionDigits: 4,
+            maximumFractionDigits: 4,
+          }).format(number);
+
         const RATE =
-          Number(record.tx_value_usd) / Number(record.tx_value_eth) || 0;
-        const amount = Number(
+          Number(record.tx_value_eth) === 0
+            ? 0
+            : Number(record.tx_value_usd) / Number(record.tx_value_eth);
+        const amount = format(
           record.tx_value_eth >= 0
             ? record.tx_value_eth
             : record.tx_value_eth * -1
-        ).toFixed(4);
-        const isPositive = record.tx_value_eth > 0;
+        );
+        const isPositive = record.tx_value_eth >= 0;
 
         return (
           <div
@@ -259,11 +267,11 @@ const TableComponent = ({
                 fontFamily: "Roboto",
               }}
             >
-              {isPositive ? "+" : "-"}${(Number(amount) * RATE).toFixed(4)}
+              {isPositive ? "+" : "-"}${format(record.tx_value_usd as number)}
             </Text>
             <Text type="secondary">
               {amount} ETH
-              <div>({RATE.toFixed(2)} USD/ETH)</div>
+              <div>({format(RATE)} USD/ETH)</div>
             </Text>
           </div>
         );

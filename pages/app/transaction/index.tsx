@@ -267,7 +267,7 @@ const TransactionPage = () => {
 
         return {
           ...item,
-          tx_value_usd: amount.toLocaleString(),
+          // tx_value_usd: amount.toLocaleString(),
 
           owner: walletState[address?.toLowerCase() || ""]?.find(
             (sItem) =>
