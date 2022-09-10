@@ -99,6 +99,7 @@ const TableComponent = ({
   loading,
   onClickAddress,
   onClickMemo,
+  onClickTag,
 }: {
   data: TransactionHistory[];
   pagination?: any;
@@ -107,6 +108,7 @@ const TableComponent = ({
   loading?: boolean;
   onClickAddress: (addr: string) => void;
   onClickMemo: (memo: string) => void;
+  onClickTag: Function;
 }) => {
   const defaultColumns = [
     {
@@ -164,6 +166,7 @@ const TableComponent = ({
         return {
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
             e.stopPropagation();
+            onClickTag();
             console.log(record, rowIndex);
           },
         };

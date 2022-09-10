@@ -8,6 +8,7 @@ import useWalletNameAndAddressForm from "../../../components/useWalletNameAndAdd
 import useTxMemoForm from "../../../components/useTxMemoForm";
 import service from "../../../services/apiService";
 import useTransactionHistoryDrawer from "../../../components/useTransactionHistoryDrawer";
+import useAddTagForm from "../../../components/useAddTagForm";
 
 const TransactionPage = () => {
   const [transactionList, setTransactionList] = useState([]);
@@ -39,6 +40,12 @@ const TransactionPage = () => {
     openModal: openMemoModal,
     closeModal: closeMemoModal,
   } = useTxMemoForm();
+
+  const {
+    TagModal,
+    openModal: openTagModal,
+    closeModal: closeTagModal,
+  } = useAddTagForm();
 
   const onCLickAddWallet = () => {
     setIsAddContact("");
@@ -130,6 +137,13 @@ const TransactionPage = () => {
         }}
         memo={currentMemo}
       />
+      <TagModal
+        onSubmit={async ({ memo }) => {
+          console.log(memo);
+        }}
+        memo={currentMemo}
+      />
+
       <Drawer tags={[]} isDisabled={true} updateTransaction={() => {}} />
       {/* <button className="add-wallet-btn-l">
         <AddWallet />
@@ -171,6 +185,7 @@ const TransactionPage = () => {
         ]}
         onClickAddress={onClickAddContact}
         onClickMemo={onClickMemo}
+        onClickTag={openTagModal}
         onClickRow={openDrawer}
       />
     </TransactionContainer>

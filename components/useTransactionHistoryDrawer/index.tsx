@@ -58,6 +58,8 @@ const tagRender = (props: CustomTagProps) => {
   );
 };
 
+export { tagRender };
+
 const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
   const [visible, setVisible] = useState(false);
 
