@@ -12,9 +12,10 @@ import TransactionIcon from "../../public/images/transactionIcon.svg";
 import { useRouter } from "next/router";
 import clsx from "clsx";
 import Link from "next/link";
-import { DoubleLeftOutlined } from "@ant-design/icons";
+import { BellOutlined, BellFilled } from "@ant-design/icons";
 
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import Notification from "../../components/Notification/Notification";
 
 const AppLayout = ({
   children,
@@ -88,7 +89,14 @@ const AppLayout = ({
         <ContentContainer>
           <div className="wrapper">
             <span className="title">{title}</span>
-            <ConnectButton label="Connect Wallet +" chainStatus="none" />
+            <div className="button-wrapper">
+              <ConnectButton
+                label="Connect Wallet +"
+                chainStatus="none"
+                showBalance={false}
+              />
+              <Notification />
+            </div>
           </div>
           {children}
         </ContentContainer>

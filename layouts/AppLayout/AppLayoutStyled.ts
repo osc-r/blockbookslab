@@ -104,7 +104,7 @@ const ContentContainer = styled.div`
     display: flex;
     justify-content: space-between;
 
-    button {
+    .button-wrapper > div:first-child > button {
       height: 48px !important;
 
       padding: 4px 24px !important;
@@ -124,16 +124,12 @@ const ContentContainer = styled.div`
         background-color: #00c3c1 !important;
         color: white !important;
         transform: none;
-
-        div > div > div {
-          > div,
-          > svg {
-            color: white;
-            transition: 0.125s ease;
-          }
-        }
       }
     }
+  }
+  .button-wrapper {
+    display: flex;
+    align-items: center;
   }
 `;
 

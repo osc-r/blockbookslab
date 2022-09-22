@@ -32,6 +32,9 @@ const GlobalStyled = createGlobalStyle`
     cursor: pointer;
     background-color: transparent;
   }
+  .ant-notification-notice-close-icon{
+    display: none;
+  }
 `;
 
 export default GlobalStyled;

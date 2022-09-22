@@ -5,9 +5,11 @@ import { HeaderStyled, NavStyled } from "./HeaderStyled";
 const Logo = ({
   iconSize = 72,
   textSize = 24,
+  displayText = true,
 }: {
   iconSize?: number;
   textSize?: number;
+  displayText?: boolean;
 }) => {
   return (
     <div style={{ display: "flex", alignItems: "center", float: "left" }}>
@@ -19,17 +21,19 @@ const Logo = ({
         height={iconSize}
         className="logo"
       />
-      <div
-        style={{
-          color: "black",
-          fontFamily: "Rubik",
-          fontWeight: 400,
-          letterSpacing: 0.4,
-          fontSize: textSize,
-        }}
-      >
-        BlockBooks
-      </div>
+      {displayText && (
+        <div
+          style={{
+            color: "black",
+            fontFamily: "Rubik",
+            fontWeight: 400,
+            letterSpacing: 0.4,
+            fontSize: textSize,
+          }}
+        >
+          BlockBooks
+        </div>
+      )}
     </div>
   );
 };

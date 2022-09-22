@@ -3,6 +3,7 @@ import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
 
 import appReducer from "./appSlice";
+import notificationReducer from "./notificationSlice";
 
 const persistConfig = {
   key: "root",
@@ -11,6 +12,7 @@ const persistConfig = {
 
 const rootReducer = combineReducers({
   app: appReducer,
+  notification: notificationReducer,
 });
 
 export const store = configureStore({
