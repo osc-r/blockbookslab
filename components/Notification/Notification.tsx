@@ -79,6 +79,7 @@ const Notification = () => {
     const init = async () => {
       if (!(await isSubscribeToNotificationChannel())) {
         await EpnsAPI.channels.subscribe({
+          // @ts-ignore
           signer: signer,
           channelAddress: `eip155:42:${NOTIFICATION_CHANNEL_ADDR}`,
           userAddress: `eip155:42:${address}`,
@@ -91,6 +92,7 @@ const Notification = () => {
           },
         });
       }
+      // @ts-ignore
       getNoti(address);
     };
     address ? init() : setNotifications([]);
