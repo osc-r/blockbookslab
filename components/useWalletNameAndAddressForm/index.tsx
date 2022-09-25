@@ -1,6 +1,9 @@
 import { Input, Form, Modal as ModalAntd, message } from "antd";
 import styled from "styled-components";
 import React, { useMemo, useState } from "react";
+import { ethers } from "ethers";
+import Resolution from "@unstoppabledomains/resolution";
+import WAValidator from "wallet-validator";
 
 const ModalWithStyled = styled(ModalAntd)`
   .ant-modal-content {
@@ -49,6 +52,64 @@ const useWalletNameAndAddressForm = () => {
     setVisible(false);
   };
 
+  const resolve = async (addr: string): Promise<string | null> => {
+    let err = "";
+
+    try {
+      const valid = WAValidator.validate(addr, "ethereum");
+      if (valid) {
+        return addr;
+      }
+
+      const resolution = new Resolution({
+        sourceConfig: {
+          uns: {
+            locations: {
+              Layer1: {
+                url: "https://eth-mainnet.g.alchemy.com/v2/6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK",
+                network: "mainnet",
+              },
+              Layer2: {
+                url: "https://polygon-mainnet.g.alchemy.com/v2/Nn8lO4ZZrMg4sxysRc09-5EvZGoXIQ-V",
+                network: "polygon-mainnet",
+              },
+            },
+          },
+        },
+      });
+
+      const uns = await resolution.addr(addr, "ETH");
+      if (uns) {
+        message.success("Resolve UNS name");
+        return uns;
+      }
+    } catch (error: any) {
+      if (error.code === "UnregisteredDomain") {
+        err = "[Unstoppable Domains] Domain is not registered";
+      } else if (error.code === "UnspecifiedResolver") {
+        err = "[Unstoppable Domains] Domain is not configured (empty resolver)";
+      } else if (error.code === "UnsupportedDomain") {
+        err = "[Unstoppable Domains] Domain is not supported";
+      }
+    }
+
+    const provider = new ethers.providers.AlchemyProvider(
+      undefined,
+      "6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK"
+    );
+
+    const ens = await provider.resolveName(addr);
+    if (ens) {
+      message.success("Resolve ENS name");
+      return ens;
+    } else {
+      err = "Couldn't resolve wallet address";
+      message.error(err);
+    }
+    console.log({ ens });
+    return null;
+  };
+
   const WalletAddressModal = useMemo(() => {
     const ModalComponent = ({
       onSubmit,
@@ -64,13 +125,25 @@ const useWalletNameAndAddressForm = () => {
       }) => Promise<void>;
     }) => {
       const [form] = Form.useForm();
+      const [isLoading, setIsLoading] = useState(false);
 
       const handleOk = (e: React.MouseEvent<HTMLElement>) => {
         form
           .validateFields()
-          .then((data) => {
-            onSubmit({ name: data.walletName, address: data.walletAddress });
-            setVisible(false);
+          .then(async (data) => {
+            if (isAddContact.addr) {
+              onSubmit({ name: data.walletName, address: data.walletAddress });
+              setVisible(false);
+              return;
+            }
+
+            setIsLoading(true);
+            const resolvedAddr = await resolve(data.walletAddress);
+            setIsLoading(false);
+            if (resolvedAddr) {
+              onSubmit({ name: data.walletName, address: resolvedAddr });
+              setVisible(false);
+            }
           })
           .catch((err) => console.log(err));
       };
@@ -86,8 +159,11 @@ const useWalletNameAndAddressForm = () => {
           visible={visible}
           onOk={handleOk}
           onCancel={handleCancel}
-          okButtonProps={{ disabled: false }}
-          cancelButtonProps={{ disabled: false }}
+          okButtonProps={{
+            disabled: false,
+            loading: isLoading,
+          }}
+          cancelButtonProps={{ disabled: isLoading }}
           centered
           okText={"Confirm"}
           width={600}
@@ -125,6 +201,7 @@ const useWalletNameAndAddressForm = () => {
               <Input
                 addonBefore="Wallet Address"
                 disabled={Boolean(isAddContact.addr)}
+                placeholder="Enter UNS, ENS or wallet address"
               />
             </Form.Item>
           </Form>

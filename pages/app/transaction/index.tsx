@@ -1,47 +1,42 @@
 import TransactionContainer from "./transactionStyled";
-import { useAccount, useConnect, useEnsName } from "wagmi";
-import { InjectedConnector } from "wagmi/connectors/injected";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useAccount } from "wagmi";
+import { useCallback, useEffect, useState } from "react";
 import AddWallet from "../../../public/images/addWallet.svg";
 import TableComponent, { TransactionHistory } from "./Table";
 import useWalletNameAndAddressForm from "../../../components/useWalletNameAndAddressForm";
 import useTxMemoForm from "../../../components/useTxMemoForm";
-import service from "../../../services/apiService";
+import service, { instance } from "../../../services/apiService";
 import useTransactionHistoryDrawer from "../../../components/useTransactionHistoryDrawer";
 import useAddTagForm from "../../../components/useAddTagForm";
 import { useConnectModal } from "@rainbow-me/rainbowkit";
 
 import { useSelector, useDispatch } from "react-redux";
-import {
-  addWallet,
-  newAccount,
-  updateWalletIsFetchBatch,
-  addContact as addContactAction,
-} from "../../../store/appSlice";
+import {} from "../../../store/appSlice";
 import { RootState } from "../../../store/store";
+import { ethers } from "ethers";
+import Resolution from "@unstoppabledomains/resolution";
+import axios from "axios";
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
+import { Carousel } from "react-responsive-carousel";
+import Image from "next/image";
 
 const TransactionPage = () => {
-  const timerRef = useRef<ReturnType<typeof setInterval>[]>([]);
   const { openConnectModal } = useConnectModal();
   const { address, isConnected } = useAccount();
 
-  const walletState = useSelector((state: RootState) => state.app.wallet);
-  const contactState = useSelector((state: RootState) => state.app.contact);
+  const authState = useSelector((state: RootState) => state.app.authStatus);
+  const walletState = useSelector((state: RootState) => state.app.wallets);
   const dispatch = useDispatch();
 
-  const [transactionData, setTransactionData] = useState<{
-    [key: string]: TransactionHistory[];
-  }>({});
-  const [transactionList, setTransactionList] = useState<TransactionHistory[]>(
-    []
-  );
+  const [transactionList, setTransactionList] = useState<any[]>([]);
+
   const [isAddContact, setIsAddContact] = useState<{
     addr: string;
     name: string;
   }>({ addr: "", name: "" });
   const [currentMemo, setCurrentMemo] = useState<string | null>("");
   const [currentTxHash, setCurrentTxHash] = useState<string | null>("");
-  const [currentTag, setCurrentTag] = useState<string | null>("");
+  const [currentTag, setCurrentTag] = useState<string[]>([]);
   const [selectedTx, setSelectedTx] = useState<TransactionHistory>();
 
   const [connectedState, setConnectedState] = useState(false);
@@ -76,58 +71,39 @@ const TransactionPage = () => {
   };
 
   const onClickMemo = (tx: TransactionHistory) => {
-    setCurrentMemo(tx.tx_memo);
+    setCurrentMemo(tx.memo);
     setCurrentTxHash(tx.tx_hash);
     openMemoModal();
   };
 
   const onClickTags = (tx: TransactionHistory) => {
-    setCurrentTag(tx.tx_label);
+    setCurrentMemo(tx.memo);
+    setCurrentTag(tx.labels);
     setCurrentTxHash(tx.tx_hash);
     openTagModal();
   };
 
+  const onClickRow = (data: TransactionHistory) => {
+    setSelectedTx(data);
+    openDrawer();
+  };
+
   const onSubmitMemo = async ({ memo }: { memo: string | null }) => {
-    const res = await service.PUT_ADD_MEMO({
+    const response = await service.POST_TX_DETAILS({
       txHash: currentTxHash as string,
       memo,
+      labels: [],
     });
-    if (res.success) {
-      refresh();
-    }
+    response.success && getTx();
   };
 
-  const onSubmitTags = async ({ tags }: { tags: string }) => {
-    const res = await service.PUT_ADD_LABEL_ON_TX({
+  const onSubmitTags = async ({ tags }: { tags: number[] }) => {
+    const response = await service.POST_TX_DETAILS({
       txHash: currentTxHash as string,
-      label: tags,
+      memo: currentMemo,
+      labels: tags,
     });
-    if (res.success) {
-      refresh();
-    }
-  };
-
-  const addNewWallet = async ({
-    name,
-    addr,
-  }: {
-    name: string;
-    addr: string;
-  }) => {
-    address &&
-      dispatch(addWallet({ name, addr, account: address.toLowerCase() }));
-    address && runBatch(address.toLowerCase(), addr);
-  };
-
-  const addContact = async ({ name, addr }: { name: string; addr: string }) => {
-    address && dispatch(addContactAction({ name, addr, account: address }));
-    // const res = await service.POST_ADD_CONTACT({
-    //   addr,
-    //   name,
-    // });
-    // if (res.success) {
-    //   refresh();
-    // }
+    response.success && getTx();
   };
 
   const onSubmitContactForm = async ({
@@ -137,91 +113,18 @@ const TransactionPage = () => {
     name: string;
     address: string;
   }) => {
-    // return console.log({ name, address });
-    isAddContact.addr === ""
-      ? addNewWallet({
-          name,
-          addr: address.toLowerCase(),
-        })
-      : addContact({
-          name,
-          addr: address.toLowerCase(),
-        });
-  };
-
-  const onClickRow = (data: TransactionHistory) => {
-    setSelectedTx(data);
-    openDrawer();
-  };
-
-  const getTx = useCallback(async (addr: string) => {
-    const { success, data } = await service.GET_TRANSACTIONS(addr);
-    if (success) {
-      setTransactionData((old) => {
-        const updatedState = { ...old };
-        updatedState[addr] = data;
-        return updatedState;
+    if (isAddContact.addr === "") {
+      const response = await service.POST_WALLET({
+        userAddress: address,
+        name,
       });
-    }
-    setIsTxFetching(false);
-  }, []);
-
-  const runBatch = useCallback(
-    async (account: string, addr: string) => {
-      let isAlreadyFetchBatch = false;
-      if (address && walletState[account]) {
-        isAlreadyFetchBatch = Boolean(
-          walletState[account].find(
-            (item) => item.address?.toLowerCase() === addr.toLowerCase()
-          )
-        );
-      }
-
-      setIsTxFetching(true);
-
-      let timer: ReturnType<typeof setInterval>;
-
-      if (!isAlreadyFetchBatch) {
-        const res = await service.POST_FETCH_TRANSACTIONS(addr);
-
-        const callback = async () => {
-          const { success, data } = await service.GET_FETCH_TRANSACTIONS_STATUS(
-            addr
-          );
-          if (success && data.task_status === "SUCCESS") {
-            dispatch(updateWalletIsFetchBatch({ account, addr }));
-            getTx(addr);
-            clearInterval(timer);
-          }
-        };
-
-        if (res.success) {
-          timer = setInterval(callback, 5_000);
-          timerRef.current.push(timer);
-        } else {
-          setIsTxFetching(false);
-        }
-      } else {
-        console.log("already fetch batch");
-        getTx(addr);
-      }
-    },
-    [getTx, address, dispatch, walletState]
-  );
-
-  const refresh = useCallback(() => {
-    walletState[address?.toLowerCase() || ""]?.forEach(
-      (item, i) => i > 0 && runBatch(address?.toLowerCase() || "", item.address)
-    );
-  }, [walletState, address, runBatch]);
-
-  const sort = (a: TransactionHistory, b: TransactionHistory) => {
-    if (a.tx_timestamp > b.tx_timestamp) {
-      return -1;
-    } else if (a.tx_timestamp < b.tx_timestamp) {
-      return 1;
+      response.success && getTx();
     } else {
-      return 0;
+      const response = await service.POST_CONTACT({
+        userAddress: address,
+        name,
+      });
+      response.success && getTx();
     }
   };
 
@@ -229,64 +132,145 @@ const TransactionPage = () => {
     setConnectedState(isConnected);
   }, [isConnected]);
 
-  useEffect(() => {
-    const init = async () => {
-      if (connectedState && address) {
-        dispatch(newAccount(address?.toLowerCase()));
-        runBatch(address.toLowerCase(), address.toLowerCase());
+  const getTx = useCallback(async () => {
+    setIsTxFetching(true);
+    if (connectedState && address && authState === "authenticated") {
+      const { success, data } = await service.GET_TRANSACTIONS();
+      if (success && data) {
+        const provider = new ethers.providers.AlchemyProvider(
+          undefined,
+          "6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK"
+        );
+        const mapped: TransactionHistory[] = [];
+        const addr: string[] = [];
+        const myMap = new Map<
+          string,
+          { ensName?: string | null; unstoppableDomain?: string | null }
+        >();
+
+        data.forEach((item) => {
+          const indexFrom = addr.findIndex((i) => i === item.from_addr);
+          const indexTo = addr.findIndex((i) => i === item.to_addr);
+          if (indexFrom === -1) {
+            addr.push(item.from_addr);
+          }
+          if (indexTo === -1) {
+            addr.push(item.to_addr);
+          }
+        });
+
+        const resolution = new Resolution({
+          sourceConfig: {
+            uns: {
+              locations: {
+                Layer1: {
+                  url: "https://eth-mainnet.g.alchemy.com/v2/6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK",
+                  network: "mainnet",
+                },
+                Layer2: {
+                  url: "https://polygon-mainnet.g.alchemy.com/v2/Nn8lO4ZZrMg4sxysRc09-5EvZGoXIQ-V",
+                  network: "polygon-mainnet",
+                },
+              },
+            },
+          },
+        });
+
+        addr.push("0x88bc9b6c56743a38223335fac05825d9355e9f83");
+
+        const pm = addr.map(async (i) => {
+          let ensName, unstoppableDomain;
+
+          try {
+            const domain = await resolution.reverseTokenId(i);
+            const res = await axios.get(
+              `https://metadata.unstoppabledomains.com/metadata/${domain}`
+            );
+            if (res.data.name) {
+              unstoppableDomain = res.data.name;
+            } else {
+              ensName = await provider.lookupAddress(i);
+            }
+            myMap.set(i, { ensName, unstoppableDomain });
+            return true;
+          } catch (error) {
+            console.log("ERR ==> ", error);
+            return false;
+          }
+        });
+
+        await Promise.all(pm);
+
+        for (let x = 0; x < data.length; x++) {
+          const item = data[x];
+          let ensName, unstoppableDomain;
+
+          const addrList = walletState.map((i) => i.address.toLowerCase());
+
+          let isDeposit = addrList.includes(item.to_addr.toLowerCase());
+          let isWithdraw = addrList.includes(item.from_addr.toLowerCase());
+
+          if (isDeposit && isWithdraw) {
+            const owner = walletState.find((i) => i.name === item.owner);
+            if (
+              owner &&
+              owner.address.toLowerCase() === item.to_addr.toLowerCase()
+            ) {
+              isDeposit = true;
+            } else {
+              isDeposit = false;
+            }
+          }
+
+          ensName = myMap.get(
+            isDeposit ? item.from_addr : item.to_addr
+          )?.ensName;
+
+          unstoppableDomain = myMap.get(
+            isDeposit ? item.from_addr : item.to_addr
+          )?.unstoppableDomain;
+
+          mapped.push({
+            ...item,
+            key: x.toString(),
+            isDeposit,
+            unstoppableDomain,
+            ensName,
+          });
+        }
+        setTransactionList(mapped);
       } else {
-        setIsTxFetching(false);
+        setTransactionList([]);
       }
-    };
-    init();
-    return () => {
-      timerRef.current.forEach((timer) => clearInterval(timer));
-    };
-  }, [address, connectedState, runBatch, dispatch]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  useEffect(() => {
-    const list = [];
-    const wallets = walletState[address?.toLowerCase() || ""]?.map((i) =>
-      i.address.toLowerCase()
-    );
-
-    // console.log({ walletState, contactState });
-
-    for (const [key, value] of Object.entries(transactionData)) {
-      const mapped = value.map((item) => {
-        const isReceiver = wallets?.includes(item.to_addr.toLowerCase());
-        const amount = item.tx_value_eth * (isReceiver ? 1 : -1);
-        const fromTo = isReceiver ? item.from_addr : item.to_addr;
-        const contact = contactState[address?.toLowerCase() || ""]?.find(
-          (c) => c.address.toLowerCase() === fromTo.toLowerCase()
-        )?.name;
-
-        return {
-          ...item,
-          // tx_value_usd: amount.toLocaleString(),
-
-          owner: walletState[address?.toLowerCase() || ""]?.find(
-            (sItem) =>
-              sItem.address.toLowerCase() === item.address.toLowerCase()
-          )?.name,
-          fromAddressName: contact ? contact : null,
-          fromAddress: fromTo,
-        } as TransactionHistory;
-      });
-      list.push(...mapped);
+      setIsTxFetching(false);
+      return;
     }
-    setTransactionList(list.sort(sort));
-  }, [transactionData, walletState, address, contactState]);
-  // const { data: ensName } = useEnsName({ address });
-  // const { connect } = useConnect({
-  //   connector: new InjectedConnector(),
-  // });
+    setTransactionList([]);
+    setIsTxFetching(false);
+  }, [address, connectedState, authState, walletState]);
 
-  // if (isConnected) return <div>Connected to {ensName ?? address}</div>;
+  useEffect(() => {
+    getTx();
+  }, [getTx]);
+
+  const downloadCSV = async () => {
+    console.log("download");
+    const res = await service.GET_CSV();
+    console.log(res);
+
+    const href = URL.createObjectURL(res.data);
+
+    // create "a" HTLM element with href to file & click
+    const link = document.createElement("a");
+    link.href = href;
+    link.setAttribute("download", "transaction.csv"); //or any other extension
+    document.body.appendChild(link);
+    link.click();
+
+    // clean up "a" element & remove ObjectURL
+    document.body.removeChild(link);
+    URL.revokeObjectURL(href);
+  };
   return (
     <TransactionContainer>
       {connectedState && (
@@ -306,11 +290,49 @@ const TransactionPage = () => {
       <TagModal onSubmit={onSubmitTags} tags={currentTag} />
 
       <Drawer tags={[]} isDisabled={false} updateTransaction={() => {}} />
-      {!connectedState ? (
-        <button className="add-wallet-btn-l" onClick={openConnectModal}>
-          <AddWallet />
-          <span>Add new Wallet</span>
-        </button>
+      {!connectedState && authState !== "authenticated" ? (
+        <Carousel
+          autoPlay
+          infiniteLoop
+          stopOnHover
+          showIndicators={false}
+          showThumbs={false}
+          showStatus={false}
+          interval={2500}
+        >
+          <div style={{ width: "100%", height: "250px" }}>
+            <Image
+              src="/images/app1.png"
+              alt="app1"
+              layout="fill"
+              objectFit="contain"
+            />
+          </div>
+          <div style={{ width: "100%", height: "250px" }}>
+            <Image
+              src="/images/app2.jpg"
+              alt="app2"
+              layout="fill"
+              objectFit="contain"
+            />
+          </div>
+          <div style={{ width: "100%", height: "250px" }}>
+            <Image
+              src="/images/app3.jpg"
+              alt="app3"
+              layout="fill"
+              objectFit="contain"
+            />
+          </div>
+          <div style={{ width: "100%", height: "250px" }}>
+            <Image
+              src="/images/app4.jpg"
+              alt="app4"
+              layout="fill"
+              objectFit="contain"
+            />
+          </div>
+        </Carousel>
       ) : (
         <TableComponent
           loading={isTxFetching}
@@ -320,6 +342,11 @@ const TransactionPage = () => {
           onClickTag={onClickTags}
           onClickRow={onClickRow}
         />
+      )}
+      {transactionList.length > 0 && (
+        <button className="add-wallet-btn-m csv" onClick={downloadCSV}>
+          CSV
+        </button>
       )}
     </TransactionContainer>
   );

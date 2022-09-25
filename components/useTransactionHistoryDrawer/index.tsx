@@ -25,6 +25,9 @@ import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 import service from "../../services/apiService";
 import { TransactionHistory } from "../../pages/app/transaction/Table";
 import { ethers } from "ethers";
+import { Option } from "antd/lib/mentions";
+import { RootState } from "../../store/store";
+import { useSelector } from "react-redux";
 
 const { Text, Title } = Typography;
 
@@ -61,6 +64,8 @@ const tagRender = (props: CustomTagProps) => {
 export { tagRender };
 
 const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
+  const labels = useSelector((state: RootState) => state.app.labels);
+
   const [visible, setVisible] = useState(false);
 
   const onOpen = () => {
@@ -69,10 +74,6 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
 
   const onClose = () => {
     setVisible(false);
-  };
-
-  const updateTransaction = async () => {
-    // const response = await service.PUT_TX_HISTORY({ txs: [] });
   };
 
   const Drawer = useMemo(() => {
@@ -92,6 +93,49 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
 
       const onError = () => {
         setIsLoading(false);
+      };
+
+      const formatNum = (number: number, decimalPoint: number = 4) =>
+        new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: decimalPoint,
+          maximumFractionDigits: decimalPoint,
+        }).format(number);
+
+      const children: React.ReactNode[] = [];
+      for (let i = 0; i < labels.length; i++) {
+        children.push(
+          <Option key={labels[i].id.toString()} value={labels[i].id.toString()}>
+            {labels[i].label}
+          </Option>
+        );
+      }
+
+      const defTags = () => {
+        if (selectedTx?.labels === undefined) {
+          return [];
+        }
+
+        const arr = [
+          ...selectedTx?.labels?.map((i) => {
+            let id: string | undefined;
+
+            labels.forEach((j) => {
+              if (j.label === i) {
+                id = j.id.toString();
+              }
+            });
+
+            return { label: i, value: id };
+          }),
+        ];
+        if (selectedTx.tx_actions) {
+          arr.push({
+            label: selectedTx.tx_actions,
+            value: selectedTx.tx_actions,
+          });
+        }
+
+        return arr;
       };
 
       return (
@@ -136,12 +180,14 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
             <div className={styles.currencyCol}>
               {selectedTx && (
                 <Title style={{ margin: 0, marginRight: 8 }} level={2}>
-                  {Number(
-                    (selectedTx.tx_value_eth >= 0
-                      ? selectedTx.tx_value_eth
-                      : selectedTx.tx_value_eth * -1
-                    ).toString()
-                  ).toFixed(8)}{" "}
+                  {formatNum(
+                    parseFloat(
+                      ethers.utils.formatUnits(
+                        selectedTx.tx_value.toString(),
+                        "ether"
+                      )
+                    )
+                  )}{" "}
                   ETH
                   {/* {currencyFormat(weiToEther(selectedTx.tokenAmount))}{" "} */}
                   {/* {selectedTx?.tokenSymbol} */}
@@ -162,9 +208,7 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
               )}
             </div>
             <Title level={4}>
-              {Number(selectedTx?.tx_value_eth) > 0
-                ? "Deposit Success"
-                : "Withdraw Success"}
+              {selectedTx?.isDeposit ? "Deposit Success" : "Withdraw Success"}
             </Title>
             <Text>
               {selectedTx &&
@@ -241,13 +285,12 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
             disabled={isDisabled}
             onFinish={updateTransaction}
             initialValues={{
-              description: selectedTx && selectedTx.tx_memo,
-              tags: selectedTx ? [selectedTx.tx_label] : [],
+              description: selectedTx && selectedTx.memo,
             }}
           >
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item name="tags" label="Tags">
+                {/* <Form.Item name="tags" label="Tags">
                   <Select
                     showArrow
                     tagRender={tagRender}
@@ -260,6 +303,17 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
                       { value: "Contact" },
                     ]}
                   />
+                </Form.Item> */}
+                <Form.Item name="tags" label="Tags">
+                  <Select
+                    showArrow
+                    tagRender={tagRender}
+                    mode="multiple"
+                    labelInValue
+                    defaultValue={defTags()}
+                  >
+                    {children}
+                  </Select>
                 </Form.Item>
               </Col>
             </Row>
@@ -285,7 +339,7 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
     };
 
     return DrawerComponent;
-  }, [visible, selectedTx]);
+  }, [visible, selectedTx, labels]);
 
   return { openDrawer: onOpen, closeDrawer: onClose, Drawer };
 };

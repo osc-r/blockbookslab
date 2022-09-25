@@ -52,6 +52,10 @@ const TransactionContainer = styled.div`
     color: white;
     background: #19c9c7;
   }
+  .csv {
+    margin-left: auto;
+    max-width: 75px;
+  }
 `;
 
 export default TransactionContainer;

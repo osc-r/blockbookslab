@@ -276,17 +276,6 @@ const Home: NextPage = () => {
         >
           <div
             style={{
-              fontFamily: "Bai Jamjuree",
-              fontSize: 80,
-              color: "#0D1111",
-              marginBottom: 20,
-            }}
-          >
-            7+ Global Supporters
-          </div>
-          <Supporters />
-          <div
-            style={{
               display: "flex",
               width: 1090,
               height: 210,
@@ -520,17 +509,6 @@ const Home: NextPage = () => {
         </div>
       </div>
 
-      <div
-        style={{
-          height: 522,
-          backgroundColor: "#8DD911",
-          backgroundImage: "url(/images/transferComponent.svg)",
-          backgroundRepeat: "no-repeat",
-          backgroundPosition: "100%",
-        }}
-      >
-        {/* <TransferImage/> */}
-      </div>
     </HomeContainer>
   );
 };

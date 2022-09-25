@@ -13,8 +13,9 @@ import { useSDKSocket } from "../../hooks/useSdkSocket";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { clear } from "../../store/notificationSlice";
-import { Card } from "antd";
+import { Button, Card, Result } from "antd";
 import { Logo } from "../Header/Header";
+import { SmileOutlined } from "@ant-design/icons";
 
 const NOTIFICATION_CHANNEL_ADDR =
   process.env.NEXT_PUBLIC_NOTIFICATION_CHANNEL_ADDR;
@@ -113,8 +114,14 @@ const Notification = () => {
         {badge.count > 0 && <span className="badge">{badge.count}</span>}
       </NotificationButton>
 
-      <NotificationBox isOpen={isOpen}>
+      <NotificationBox isOpen={isOpen} isSmall={notifications.length === 0}>
         <div className="box">
+          {notifications.length === 0 && (
+            <Result
+              icon={<SmileOutlined style={{ color: "#19c9c7" }} />}
+              title="You have no notifications!"
+            />
+          )}
           {notifications.map((oneNotification, i) => {
             const {
               cta,

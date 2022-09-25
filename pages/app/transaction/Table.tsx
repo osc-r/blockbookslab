@@ -13,24 +13,26 @@ import LetteredAvatar from "lettered-avatar";
 const { Text } = Typography;
 
 export interface TransactionHistory {
+  owner: string | null;
   tx_hash: string;
-  address: string;
+  chain_id: number;
+  block_number: string;
   from_addr: string;
   to_addr: string;
-  to_name: string | null;
-  tx_value_eth: number;
-  tx_fee: number;
-  tx_fee_eth: number;
   tx_timestamp: number;
-  tx_action: string | null;
-  tx_action_full: string | null;
-  tx_label: string | null;
-  tx_memo: string | null;
-  tx_value_usd: number | null;
+  tx_value: number;
+  tx_gas: number;
+  tx_gas_price: number;
+  tx_actions: string | null;
+  rate: number;
+  memo: null | string;
+  labels: string[];
+  contact_name: null | string;
 
-  owner?: string;
-  fromAddress?: string;
-  fromAddressName?: string;
+  key?: string;
+  isDeposit?: boolean;
+  ensName?: string | null;
+  unstoppableDomain?: string | null;
 }
 
 type EditableTableProps = Parameters<typeof Table>[0];
@@ -183,7 +185,7 @@ const TableComponent = ({
     {
       title: "Memo",
       width: "15%",
-      dataIndex: "description",
+      dataIndex: "memo",
       onCell: (record: TransactionHistory, rowIndex: number) => {
         return {
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,8 +195,8 @@ const TableComponent = ({
         };
       },
       render: (_: any, record: TransactionHistory) => {
-        return record.tx_memo ? (
-          <Text style={{ color: "#30384b" }}>{record.tx_memo}</Text>
+        return record.memo ? (
+          <Text style={{ color: "#30384b" }}>{record.memo}</Text>
         ) : (
           <Text style={{ color: "#D7DDE5" }}>Add Memo</Text>
         );
@@ -206,16 +208,18 @@ const TableComponent = ({
       render: (_: any, record: TransactionHistory, index: number) => {
         return (
           <React.Fragment>
-            {record.tx_action && (
+            {record.tx_actions && (
               <Tag color="green" key="1">
-                {record.tx_action}
+                {record.tx_actions}
               </Tag>
             )}
-            {record.tx_label ? (
-              <Tag color="green" key="2">
-                {record.tx_label}
-              </Tag>
-            ) : record.tx_action ? null : (
+            {record.labels.length > 0 ? (
+              record.labels.map((label, index) => (
+                <Tag color="green" key={index}>
+                  {label}
+                </Tag>
+              ))
+            ) : record.tx_actions ? null : (
               <Text style={{ color: "#D7DDE5" }}>Add Tag</Text>
             )}
           </React.Fragment>
@@ -236,22 +240,19 @@ const TableComponent = ({
       align: "right",
       width: "20%",
       render: (_: any, record: TransactionHistory) => {
-        const format = (number: number) =>
+        const format = (number: number, decimalPoint: number = 4) =>
           new Intl.NumberFormat("en-US", {
-            minimumFractionDigits: 4,
-            maximumFractionDigits: 4,
+            minimumFractionDigits: decimalPoint,
+            maximumFractionDigits: decimalPoint,
           }).format(number);
 
-        const RATE =
-          Number(record.tx_value_eth) === 0
-            ? 0
-            : Number(record.tx_value_usd) / Number(record.tx_value_eth);
-        const amount = format(
-          record.tx_value_eth >= 0
-            ? record.tx_value_eth
-            : record.tx_value_eth * -1
+        const RATE = format(record.rate, 2);
+
+        const amountInEther = format(
+          parseFloat(
+            ethers.utils.formatUnits(record.tx_value.toString(), "ether")
+          )
         );
-        const isPositive = record.tx_value_eth >= 0;
 
         return (
           <div
@@ -262,16 +263,17 @@ const TableComponent = ({
           >
             <Text
               style={{
-                color: isPositive ? "#219653" : "#d82a58",
+                color: record?.isDeposit ? "#219653" : "#d82a58",
                 fontWeight: 700,
                 fontFamily: "Roboto",
               }}
             >
-              {isPositive ? "+" : "-"}${format(record.tx_value_usd as number)}
+              {record?.isDeposit ? "+" : "-"}$
+              {format((record.rate * parseFloat(amountInEther)) as number)}
             </Text>
             <Text type="secondary">
-              {amount} ETH
-              <div>({format(RATE)} USD/ETH)</div>
+              {amountInEther} ETH
+              <div>({RATE} USD/ETH)</div>
             </Text>
           </div>
         );
@@ -279,34 +281,49 @@ const TableComponent = ({
     },
     {
       title: "Address",
-      dataIndex: "fromAddress", //toAddress
       width: "15%",
       render: (_: any, record: TransactionHistory) => {
-        const addr = record?.fromAddress || "";
+        const addr = record?.isDeposit ? record.from_addr : record.to_addr;
+        const resolveName = record.unstoppableDomain || record.ensName;
         return (
-          <Tooltip placement="bottomLeft" title={addr}>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              {record.fromAddressName && (
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {record.contact_name && (
+              <Tooltip placement="bottomLeft" title={addr}>
                 <Text style={{ color: "#30384b", fontWeight: "bold" }}>
-                  {record.fromAddressName}
-                  {/* {record.to_name} */}
+                  {record.contact_name}
                 </Text>
-              )}
-              <Text type="secondary">
-                {`${addr.slice(0, 5)}...${addr.slice(addr.length - 4)}`}
-              </Text>
-            </div>
-          </Tooltip>
+              </Tooltip>
+            )}
+            {(!resolveName || !record.contact_name) && (
+              <Tooltip placement="bottomLeft" title={addr}>
+                <Text type="secondary">
+                  {`${addr.slice(0, 5)}...${addr.slice(addr.length - 4)}`}
+                </Text>
+              </Tooltip>
+            )}
+            {resolveName && (
+              <Tooltip placement="bottomLeft" title={resolveName}>
+                <Text
+                  type="secondary"
+                  style={{
+                    textOverflow: "ellipsis",
+                    overflow: "hidden",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {resolveName}
+                </Text>
+              </Tooltip>
+            )}
+          </div>
         );
       },
       onCell: (record: TransactionHistory, rowIndex: number) => {
+        const addr = record?.isDeposit ? record.from_addr : record.to_addr;
         return {
           onClick: (e: React.ChangeEvent<HTMLInputElement>) => {
             e.stopPropagation();
-            onClickAddress(
-              record.fromAddress || "",
-              record.fromAddressName || ""
-            );
+            onClickAddress(addr, record.contact_name || "");
           },
         };
       },
@@ -336,7 +353,7 @@ const TableComponent = ({
       //     return original;
       //   },
       // }}
-      rowKey="tx_hash"
+      // rowKey="tx_hash"
       pagination={false}
       loading={loading}
       onRow={(record) => {

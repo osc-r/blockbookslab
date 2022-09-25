@@ -53,6 +53,7 @@ export const useSDKSocket = ({
         message:
           feedList.payload.notification.title.split("blockbookslab - ")[1],
         description: feedList.payload.notification.body,
+        duration: 10
       });
 
       // do stuff with data

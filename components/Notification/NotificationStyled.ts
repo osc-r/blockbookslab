@@ -41,11 +41,12 @@ const NotificationButton = styled.button`
   }
 `;
 
-const NotificationBox = styled.div<{ isOpen: boolean }>`
+const NotificationBox = styled.div<{ isOpen: boolean; isSmall: boolean }>`
   position: absolute;
   right: 0;
   top: calc(100% + 12px);
-  height: 65vh;
+  height: ${({ isSmall }) => (isSmall ? "250px" : "fit-content")};
+  max-height: 65vh;
   width: 350px;
   max-height: ${({ isOpen }) => (isOpen ? "65vh" : "0px")};
   max-width: ${({ isOpen }) => (isOpen ? 350 : 0)}px;
@@ -70,6 +71,14 @@ const NotificationBox = styled.div<{ isOpen: boolean }>`
 
     > div {
     }
+  }
+  .ant-result-title {
+    font-size: 18px;
+    color: #00c3c1;
+    font-family: Rubik;
+  }
+  .ant-result {
+    height: 100%;
   }
 `;
 

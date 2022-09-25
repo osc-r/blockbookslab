@@ -14,11 +14,11 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      {
-        source: "/",
-        destination: "/app/transaction",
-        permanent: true,
-      },
+      // {
+      //   source: "/",
+      //   destination: "/app/transaction",
+      //   permanent: true,
+      // },
       {
         source: "/app",
         destination: "/app/transaction",

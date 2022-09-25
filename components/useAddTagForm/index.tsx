@@ -2,6 +2,9 @@ import { Input, Form, Modal as ModalAntd, message, Select } from "antd";
 import styled from "styled-components";
 import React, { useMemo, useState } from "react";
 import { tagRender } from "../useTransactionHistoryDrawer";
+import { RootState } from "../../store/store";
+import { useSelector } from "react-redux";
+import { Option } from "antd/lib/mentions";
 
 const ModalWithStyled = styled(ModalAntd)`
   .ant-modal-content {
@@ -41,6 +44,8 @@ const ModalWithStyled = styled(ModalAntd)`
 `;
 
 const useAddTagForm = () => {
+  const labels = useSelector((state: RootState) => state.app.labels);
+
   const [visible, setVisible] = useState(false);
 
   const onOpen = () => {
@@ -55,8 +60,8 @@ const useAddTagForm = () => {
       onSubmit,
       tags,
     }: {
-      tags: string | null;
-      onSubmit: ({ tags }: { tags: string }) => Promise<void>;
+      tags: string[];
+      onSubmit: ({ tags }: { tags: number[] }) => Promise<void>;
     }) => {
       const [form] = Form.useForm();
 
@@ -64,7 +69,9 @@ const useAddTagForm = () => {
         form
           .validateFields()
           .then((data) => {
-            onSubmit({ tags: data.tags });
+            if (data && data.tags && data.tags.length > 0) {
+              onSubmit({ tags: data.tags.map((i) => i.value) });
+            }
             setVisible(false);
           })
           .catch((err) => console.log(err));
@@ -74,6 +81,15 @@ const useAddTagForm = () => {
         form.resetFields();
         setVisible(false);
       };
+
+      const children: React.ReactNode[] = [];
+      for (let i = 0; i < labels.length; i++) {
+        children.push(
+          <Option key={labels[i].id.toString()} value={labels[i].id.toString()}>
+            {labels[i].label}
+          </Option>
+        );
+      }
 
       return (
         <ModalWithStyled
@@ -91,21 +107,27 @@ const useAddTagForm = () => {
             layout="vertical"
             name="bookmarkForm"
             autoComplete="off"
-            initialValues={{ tags }}
           >
             <Form.Item name="tags" label="Tags">
               <Select
                 showArrow
                 tagRender={tagRender}
-                // defaultValue={
-                //   selectedTx ? selectedTx.tags.map((tag) => tag) : []
-                // }
-                options={[
-                  { value: "Equipment" },
-                  { value: "Salary" },
-                  { value: "Contact" },
-                ]}
-              />
+                mode="multiple"
+                labelInValue
+                defaultValue={tags.map((i) => {
+                  let id = undefined;
+
+                  labels.forEach((j) => {
+                    if (j.label === i) {
+                      id = j.id.toString();
+                    }
+                  });
+
+                  return { label: i, value: id };
+                })}
+              >
+                {children}
+              </Select>
             </Form.Item>
           </Form>
         </ModalWithStyled>

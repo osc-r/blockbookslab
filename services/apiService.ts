@@ -1,10 +1,14 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { TransactionHistory } from "../pages/app/transaction/Table";
+import { IContact, ILabel, IWallet } from "../store/appSlice";
 
-const instance = axios.create({
-  baseURL: "http://localhost:8000",
+const ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT;
+
+export const instance = axios.create({
+  // baseURL: ENDPOINT,
 });
 
-const successHandler = (response: AxiosResponse) => {
+const successHandler = <T>(response: AxiosResponse<T>) => {
   return { success: true, data: response.data };
 };
 
@@ -28,7 +32,7 @@ const errorHandler = (error: AxiosError) => {
   return { success: false, data: null };
 };
 
-const serviceInstance = async (
+const serviceInstance = async <T>(
   method: string,
   url: string,
   config?: AxiosRequestConfig,
@@ -37,28 +41,31 @@ const serviceInstance = async (
   switch (method) {
     case "POST":
       return instance
-        .post(url, data, config)
-        .then(successHandler)
+        .post<T>(url, data, config)
+        .then(successHandler<T>)
         .catch(errorHandler);
     case "PUT":
       return instance
-        .put(url, data, config)
-        .then(successHandler)
+        .put<T>(url, data, config)
+        .then(successHandler<T>)
         .catch(errorHandler);
     default:
-      return instance.get(url, config).then(successHandler).catch(errorHandler);
+      return instance
+        .get<T>(url, config)
+        .then(successHandler<T>)
+        .catch(errorHandler);
   }
 };
 
 const service = {
   POST_FETCH_TRANSACTIONS: (userAddress: string) => {
-    return serviceInstance("POST", `/wallet/${userAddress}`);
+    return serviceInstance("POST", `/transaction/1/${userAddress}`);
   },
   GET_FETCH_TRANSACTIONS_STATUS: (userAddress: string) => {
-    return serviceInstance("GET", `/wallet/${userAddress}`);
+    return serviceInstance("GET", `/transaction/${userAddress}`);
   },
-  GET_TRANSACTIONS: (userAddress: string) => {
-    return serviceInstance("GET", `/transactions/${userAddress}`);
+  GET_TRANSACTIONS: () => {
+    return serviceInstance<TransactionHistory[]>("GET", `/api/transactions`);
   },
   GET_ACTION_BY_TX_HASH: (txHash: string) => {
     return serviceInstance("GET", `/action/${txHash}`);
@@ -83,6 +90,90 @@ const service = {
   },
   PUT_ADD_MEMO: ({ txHash, memo }: { txHash: string; memo: string | null }) => {
     return serviceInstance("PUT", `/memo/${txHash}/${memo}`);
+  },
+  GET_LABELS: () => {
+    return serviceInstance<ILabel[]>("GET", `/api/labels`);
+  },
+  GET_CONTACTS: () => {
+    return serviceInstance<IContact[]>("GET", `/api/contacts`);
+  },
+  GET_WALLETS: () => {
+    return serviceInstance<IWallet[]>("GET", `/api/wallets`);
+  },
+  GET_NONCE: () => {
+    return serviceInstance<string>("GET", `/api/login/nonce`);
+  },
+  POST_VERIFY: ({
+    signature,
+    message,
+  }: {
+    signature: string;
+    message: string;
+  }) => {
+    return serviceInstance<any>(
+      "POST",
+      `/api/login/verify`,
+      {},
+      { signature, message }
+    );
+  },
+  POST_TX_DETAILS: ({
+    txHash,
+    memo,
+    labels,
+  }: {
+    txHash: string;
+    memo: string | null;
+    labels: number[];
+  }) => {
+    return serviceInstance(
+      "POST",
+      `/api/transactions/details`,
+      {},
+      { txHash, memo, labels }
+    );
+  },
+  POST_WALLET: ({
+    userAddress,
+    name,
+  }: {
+    userAddress: string;
+    name: string;
+  }) => {
+    return serviceInstance(
+      "POST",
+      `/api/wallets`,
+      {},
+      {
+        userAddress,
+        name,
+      }
+    );
+  },
+  POST_CONTACT: ({
+    userAddress,
+    name,
+  }: {
+    userAddress: string;
+    name: string;
+  }) => {
+    return serviceInstance(
+      "POST",
+      `/api/contacts`,
+      {},
+      {
+        userAddress,
+        name,
+      }
+    );
+  },
+  GET_CSV: () => {
+    return serviceInstance<any>("GET", `/api/csv`, {
+      headers: {
+        "Content-Type": "text/csv",
+      },
+      responseType: "blob",
+    });
   },
 };
 
