@@ -19,6 +19,7 @@ import axios from "axios";
 import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a loader
 import { Carousel } from "react-responsive-carousel";
 import Image from "next/image";
+import { message } from "antd";
 
 const TransactionPage = () => {
   const { openConnectModal } = useConnectModal();
@@ -106,6 +107,27 @@ const TransactionPage = () => {
     response.success && getTx();
   };
 
+  const getStatus = async (address: string) => {
+    let timer: ReturnType<typeof setInterval>;
+
+    timer = setInterval(async () => {
+      const response = await service.GET_TX_RESULT({
+        address: address.toLowerCase(),
+      });
+
+      console.log({ response });
+
+      if (response.success && response.data.task_status === "SUCCESS") {
+        message.destroy();
+        setTimeout(() => {
+          message.success("New Wallet has been synced");
+        }, 1500);
+        getTx();
+        clearInterval(timer);
+      }
+    }, 10000);
+  };
+
   const onSubmitContactForm = async ({
     name,
     address,
@@ -114,11 +136,14 @@ const TransactionPage = () => {
     address: string;
   }) => {
     if (isAddContact.addr === "") {
+      message.loading("Syncing new wallet transactions", 0);
+
       const response = await service.POST_WALLET({
         userAddress: address,
         name,
       });
-      response.success && getTx();
+
+      response.success && getStatus(address);
     } else {
       const response = await service.POST_CONTACT({
         userAddress: address,
@@ -271,8 +296,10 @@ const TransactionPage = () => {
     document.body.removeChild(link);
     URL.revokeObjectURL(href);
   };
+
   return (
     <TransactionContainer>
+      {/* <button onClick={getStatus}>get</button> */}
       {connectedState && (
         <div className="action-wrapper">
           <button disabled>Sort</button>

@@ -46,7 +46,7 @@ const NotificationBox = styled.div<{ isOpen: boolean; isSmall: boolean }>`
   right: 0;
   top: calc(100% + 12px);
   height: ${({ isSmall }) => (isSmall ? "250px" : "fit-content")};
-  max-height: 65vh;
+  max-height: ${({ isOpen }) => (isOpen ? "65vh" : "auto")};
   width: 350px;
   max-height: ${({ isOpen }) => (isOpen ? "65vh" : "0px")};
   max-width: ${({ isOpen }) => (isOpen ? 350 : 0)}px;

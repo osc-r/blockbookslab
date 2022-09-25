@@ -175,6 +175,9 @@ const service = {
       responseType: "blob",
     });
   },
+  GET_TX_RESULT: ({ address }: { address: string }) => {
+    return serviceInstance<any>("GET", `/api/transactions/results/${address}`);
+  },
 };
 
 Object.freeze(service);
