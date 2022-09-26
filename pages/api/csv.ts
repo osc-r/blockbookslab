@@ -10,6 +10,7 @@ export default async function handler(
 ) {
   const response = await axios.get(`${ENDPOINT}/csv`, {
     headers: {
+      // @ts-ignore
       Authorization: req.headers.authorization,
       "Content-Type": "text/csv",
     },

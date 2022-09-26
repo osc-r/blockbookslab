@@ -13,6 +13,7 @@ export default async function handler(
     `${ENDPOINT}/labels`,
     {
       headers: {
+        // @ts-ignore
         Authorization: req.headers.authorization,
       },
     }

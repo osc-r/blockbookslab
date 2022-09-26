@@ -14,6 +14,7 @@ export default async function handler(
     `${ENDPOINT}/transactions`,
     {
       headers: {
+        // @ts-ignore
         Authorization: req.headers.authorization,
       },
     }

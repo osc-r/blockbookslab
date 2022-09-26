@@ -17,6 +17,7 @@ export default async function handler(
     },
     {
       headers: {
+        // @ts-ignore
         Authorization: req.headers.authorization,
       },
     }

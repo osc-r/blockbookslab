@@ -22,6 +22,7 @@ export const rainbow = ({ chains }: MyWalletOptions): Wallet => ({
     ios: "https://my-wallet/ios",
     qrCode: "https://my-wallet/qr",
   },
+  // @ts-ignore
   createConnector: () => {
     // const connector = getWalletConnectConnector({ chains });
 
@@ -32,7 +33,9 @@ export const rainbow = ({ chains }: MyWalletOptions): Wallet => ({
         scope: "openid wallet",
       }),
       connectors: {
+        // @ts-ignore
         injected: wallet.injected({ chains }),
+        // @ts-ignore
         walletconnect: wallet.walletConnect({ chains }),
       },
     });

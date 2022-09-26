@@ -9,9 +9,11 @@ export default async function handler(
   res: NextApiResponse<any>
 ) {
   const response = await axios.get(
+    // @ts-ignore
     `${ENDPOINT}/transactions/results/${req.query.address.toLowerCase()}`,
     {
       headers: {
+        // @ts-ignore
         Authorization: req.headers.authorization,
       },
     }

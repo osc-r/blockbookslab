@@ -17,6 +17,7 @@ export default async function handler(
       },
       {
         headers: {
+          // @ts-ignore
           Authorization: req.headers.authorization,
         },
       }
@@ -26,6 +27,7 @@ export default async function handler(
   } else {
     const response = await axios.get(`${ENDPOINT}/contacts`, {
       headers: {
+        // @ts-ignore
         Authorization: req.headers.authorization,
       },
     });
