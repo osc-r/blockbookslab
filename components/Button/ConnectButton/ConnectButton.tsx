@@ -36,7 +36,7 @@ const ConnectButton = () => {
     try {
       const uauth = new UAuth({
         clientID: "839a5876-aad9-4c04-b2f4-bd0a089ec39a",
-        redirectUri: "http://127.0.0.1",
+        redirectUri: "https://dev.blockbooks.software/app/transaction",
         scope: "openid wallet",
       });
 
