@@ -83,7 +83,6 @@ const ConnectButtonStyled = styled.div<{ isOpen: boolean }>`
 
     visibility: ${({ isOpen }) => (isOpen ? "visible" : "hidden")};
     opacity: ${({ isOpen }) => (isOpen ? 1 : 0)};
-    transition: all ease-in-out 0.3s;
 
     :hover {
       background-image: url("/images/unstoppable/hover.svg");
