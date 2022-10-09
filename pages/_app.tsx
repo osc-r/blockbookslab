@@ -1,5 +1,5 @@
 import type { AppProps } from "next/app";
-import styled, { ThemeProvider, DefaultTheme } from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import GlobalStyle from "../components/GlobalStyled/GlobalStyled";
 import { theme } from "../components/GlobalStyled/theme";
 import { useRouter } from "next/router";
@@ -12,41 +12,23 @@ import {
   RainbowKitProvider,
   createAuthenticationAdapter,
   RainbowKitAuthenticationProvider,
-  connectorsForWallets,
 } from "@rainbow-me/rainbowkit";
-import {
-  chain,
-  createClient,
-  WagmiConfig,
-  configureChains,
-  useAccount,
-} from "wagmi";
+import { chain, createClient, WagmiConfig, configureChains } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
 
 import { store, persistor } from "../store/store";
-import { Provider, useDispatch } from "react-redux";
+import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 
 import { SiweMessage } from "siwe";
-import axios from "axios";
 import { AuthenticationStatus } from "@rainbow-me/rainbowkit/dist/components/RainbowKitProvider/AuthenticationContext";
-import { useEffect, useState } from "react";
-
-import UAuth from "@uauth/js";
+import { useRef, useState } from "react";
 import service, { instance } from "../services/apiService";
-
-import { UAuthConnector } from "@uauth/web3-react";
-
 import {
-  Chain,
-  Wallet,
-  getWalletConnectConnector,
-  wallet,
-} from "@rainbow-me/rainbowkit";
-import { rainbow } from "../helpers/Connector";
-import {
+  logout,
   setAuthenticated,
   setContacts,
+  setCredential,
   setLabels,
   setUnauthenticated,
   setWallets,
@@ -82,28 +64,13 @@ const Container = styled.div`
 `;
 
 export default function App({ Component, pageProps }: AppProps) {
+  const walletAddr = useRef<string | null>(null);
+
   const [authStatus, setAuthStatus] =
     useState<AuthenticationStatus>("unauthenticated");
 
   const router = useRouter();
   const pathArr = router.pathname.split("/");
-
-  // useEffect(() => {
-  //   const login = async () => {
-  //     try {
-  //       const uauth = new UAuth({
-  //         clientID: "839a5876-aad9-4c04-b2f4-bd0a089ec39a",
-  //         redirectUri: "http://localhost:3000",
-  //         scope: "openid wallet",
-  //       });
-  //       const authorization = await uauth.loginWithPopup();
-  //       console.log({ authorization });
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   };
-  //   login();
-  // }, []);
 
   const render = () => {
     if (pathArr[1] && pathArr[1] === "app")
@@ -126,6 +93,7 @@ export default function App({ Component, pageProps }: AppProps) {
       }
     },
     createMessage: ({ nonce, address, chainId }) => {
+      walletAddr.current = address;
       return new SiweMessage({
         domain: window.location.host,
         address,
@@ -139,7 +107,7 @@ export default function App({ Component, pageProps }: AppProps) {
     getMessageBody: ({ message }) => {
       return message.prepareMessage();
     },
-    verify: async ({ message, signature }) => {
+    verify: async ({ message, signature, ...rest }) => {
       const response = await service.POST_VERIFY({
         message: message.prepareMessage(),
         signature,
@@ -152,11 +120,21 @@ export default function App({ Component, pageProps }: AppProps) {
         return false;
       }
 
-      store.dispatch(setAuthenticated());
-      setAuthStatus("authenticated");
-
       const jwt = response.data.token;
       instance.defaults.headers.common["Authorization"] = `Bearer ${jwt}`;
+
+      store.dispatch(setAuthenticated());
+      store.dispatch(
+        setCredential({
+          data: {
+            address: walletAddr.current,
+            loginMethod: "SIWE",
+            name: null,
+            jwt: `Bearer ${jwt}`,
+          },
+        })
+      );
+      setAuthStatus("authenticated");
 
       const contacts = await service.GET_CONTACTS();
       const labels = await service.GET_LABELS();
@@ -174,6 +152,7 @@ export default function App({ Component, pageProps }: AppProps) {
     },
     signOut: async () => {
       store.dispatch(setUnauthenticated());
+      store.dispatch(logout());
       setAuthStatus("unauthenticated");
     },
   });

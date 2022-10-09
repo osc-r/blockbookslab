@@ -1,16 +1,14 @@
 import TransactionContainer from "./transactionStyled";
 import { useAccount } from "wagmi";
 import { useCallback, useEffect, useState } from "react";
-import AddWallet from "../../../public/images/addWallet.svg";
 import TableComponent, { TransactionHistory } from "./Table";
 import useWalletNameAndAddressForm from "../../../components/useWalletNameAndAddressForm";
 import useTxMemoForm from "../../../components/useTxMemoForm";
-import service, { instance } from "../../../services/apiService";
+import service from "../../../services/apiService";
 import useTransactionHistoryDrawer from "../../../components/useTransactionHistoryDrawer";
 import useAddTagForm from "../../../components/useAddTagForm";
-import { useConnectModal } from "@rainbow-me/rainbowkit";
 
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import {} from "../../../store/appSlice";
 import { RootState } from "../../../store/store";
 import { ethers } from "ethers";
@@ -22,12 +20,11 @@ import Image from "next/image";
 import { message } from "antd";
 
 const TransactionPage = () => {
-  const { openConnectModal } = useConnectModal();
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
 
   const authState = useSelector((state: RootState) => state.app.authStatus);
+  const credential = useSelector((state: RootState) => state.app.credential);
   const walletState = useSelector((state: RootState) => state.app.wallets);
-  const dispatch = useDispatch();
 
   const [transactionList, setTransactionList] = useState<any[]>([]);
 
@@ -154,12 +151,21 @@ const TransactionPage = () => {
   };
 
   useEffect(() => {
-    setConnectedState(isConnected);
-  }, [isConnected]);
+    if (credential.loginMethod === "SIWE" || credential.loginMethod === null) {
+      setConnectedState(isConnected);
+    }
+    if (credential.loginMethod === "UD") {
+      if (credential.address) {
+        setConnectedState(true);
+      } else {
+        setConnectedState(false);
+      }
+    }
+  }, [isConnected, credential]);
 
   const getTx = useCallback(async () => {
     setIsTxFetching(true);
-    if (connectedState && address && authState === "authenticated") {
+    if (connectedState && credential.address && authState === "authenticated") {
       const { success, data } = await service.GET_TRANSACTIONS();
       if (success && data) {
         const provider = new ethers.providers.AlchemyProvider(
@@ -272,7 +278,7 @@ const TransactionPage = () => {
     }
     setTransactionList([]);
     setIsTxFetching(false);
-  }, [address, connectedState, authState, walletState]);
+  }, [connectedState, credential.address, authState, walletState]);
 
   useEffect(() => {
     getTx();
@@ -317,7 +323,16 @@ const TransactionPage = () => {
       <TagModal onSubmit={onSubmitTags} tags={currentTag} />
 
       <Drawer tags={[]} isDisabled={false} updateTransaction={() => {}} />
-      {!connectedState && authState !== "authenticated" ? (
+      {connectedState && authState === "authenticated" ? (
+        <TableComponent
+          loading={isTxFetching}
+          data={transactionList}
+          onClickAddress={onClickAddContact}
+          onClickMemo={onClickMemo}
+          onClickTag={onClickTags}
+          onClickRow={onClickRow}
+        />
+      ) : (
         <Carousel
           autoPlay
           infiniteLoop
@@ -325,6 +340,7 @@ const TransactionPage = () => {
           showIndicators={false}
           showThumbs={false}
           showStatus={false}
+          showArrows={false}
           interval={2500}
         >
           <div style={{ width: "100%", height: "250px" }}>
@@ -360,21 +376,14 @@ const TransactionPage = () => {
             />
           </div>
         </Carousel>
-      ) : (
-        <TableComponent
-          loading={isTxFetching}
-          data={transactionList}
-          onClickAddress={onClickAddContact}
-          onClickMemo={onClickMemo}
-          onClickTag={onClickTags}
-          onClickRow={onClickRow}
-        />
       )}
-      {transactionList.length > 0 && (
-        <button className="add-wallet-btn-m csv" onClick={downloadCSV}>
-          CSV
-        </button>
-      )}
+      {connectedState &&
+        authState === "authenticated" &&
+        transactionList.length > 0 && (
+          <button className="add-wallet-btn-m csv" onClick={downloadCSV}>
+            CSV
+          </button>
+        )}
     </TransactionContainer>
   );
 };

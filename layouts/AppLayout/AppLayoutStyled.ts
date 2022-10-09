@@ -104,7 +104,7 @@ const ContentContainer = styled.div`
     display: flex;
     justify-content: space-between;
 
-    .button-wrapper > div:first-child > button {
+    .button-wrapper > div:first-child > div > button {
       height: 48px !important;
 
       padding: 4px 24px !important;
@@ -121,8 +121,6 @@ const ContentContainer = styled.div`
 
       :hover {
         transition: all 0.3s ease-in-out !important;
-        background-color: #00c3c1 !important;
-        color: white !important;
         transform: none;
       }
     }

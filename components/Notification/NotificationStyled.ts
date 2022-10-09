@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-const NotificationButton = styled.button`
+const NotificationButton = styled.button<{ isOpen: boolean }>`
   display: flex;
   justify-content: center;
   align-items: center;
@@ -13,15 +13,8 @@ const NotificationButton = styled.button`
   border-radius: 16px;
 
   color: #00c3c1;
-  z-index: 3;
+  z-index: ${({ isOpen }) => (isOpen ? 3 : 0)};
   background-color: white;
-  :hover {
-    transition: all 0.3s ease-in-out !important;
-    background-color: #00c3c1 !important;
-    color: white !important;
-    transform: none;
-    z-index: 3;
-  }
 
   .badge {
     position: absolute;

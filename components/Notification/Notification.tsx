@@ -8,12 +8,12 @@ import {
 import * as EpnsAPI from "@epnsproject/sdk-restapi";
 import { useCallback, useEffect, useState } from "react";
 
-import { useSigner, useAccount } from "wagmi";
+import { useSigner } from "wagmi";
 import { useSDKSocket } from "../../hooks/useSdkSocket";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { clear } from "../../store/notificationSlice";
-import { Button, Card, Result } from "antd";
+import { Card, Result } from "antd";
 import { Logo } from "../Header/Header";
 import { SmileOutlined } from "@ant-design/icons";
 
@@ -25,7 +25,8 @@ const APP_NAME = process.env.NEXT_PUBLIC_NOTIFICATION_APP_NAME;
 const Notification = () => {
   const dispatch = useDispatch();
   const { data: signer, isError, isLoading } = useSigner();
-  const { address } = useAccount();
+  const credential = useSelector((state: RootState) => state.app.credential);
+
   const badge = useSelector((state: RootState) => state.notification);
 
   const {
@@ -33,7 +34,7 @@ const Notification = () => {
     isSDKSocketConnected,
     feedsSinceLastConnection,
     lastConnectionTimestamp,
-  } = useSDKSocket({ account: address, env: NOTIFICATION_ENV });
+  } = useSDKSocket({ account: credential.address, env: NOTIFICATION_ENV });
 
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -52,16 +53,16 @@ const Notification = () => {
   }, []);
 
   useEffect(() => {
-    if (badge.count > 0 && address) {
-      getNoti(address);
+    if (badge.count > 0 && credential.address) {
+      getNoti(credential.address);
     }
-  }, [badge, address, getNoti]);
+  }, [badge, credential, getNoti]);
 
   useEffect(() => {
     const isSubscribeToNotificationChannel = async () => {
       let status = false;
       const subscriptions: any[] = await EpnsAPI.user.getSubscriptions({
-        user: `eip155:42:${address}`,
+        user: `eip155:42:${credential.address}`,
         env: NOTIFICATION_ENV,
       });
 
@@ -82,7 +83,7 @@ const Notification = () => {
           // @ts-ignore
           signer: signer,
           channelAddress: `eip155:42:${NOTIFICATION_CHANNEL_ADDR}`,
-          userAddress: `eip155:42:${address}`,
+          userAddress: `eip155:42:${credential.address}`,
           env: NOTIFICATION_ENV,
           onSuccess: () => {
             console.log("opt in success");
@@ -93,10 +94,10 @@ const Notification = () => {
         });
       }
       // @ts-ignore
-      getNoti(address);
+      getNoti(credential.address);
     };
-    address ? init() : setNotifications([]);
-  }, [address, signer, getNoti]);
+    credential.address ? init() : setNotifications([]);
+  }, [credential, signer, getNoti]);
 
   const close = () => setIsOpen(false);
 
@@ -111,7 +112,7 @@ const Notification = () => {
 
   return (
     <div style={{ position: "relative" }}>
-      <NotificationButton onClick={onToggle}>
+      <NotificationButton onClick={onToggle} isOpen={isOpen}>
         <BellOutlined style={{ fontSize: 22, opacity: 1 }} color={"#00c3c1"} />
         {badge.count > 0 && <span className="badge">{badge.count}</span>}
       </NotificationButton>

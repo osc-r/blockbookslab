@@ -14,22 +14,32 @@ export interface ILabel {
 
 export interface IContact {}
 
+interface ICredential {
+  address: string | null;
+  loginMethod: "SIWE" | "UD" | null;
+  name: string | null;
+  jwt: string | null;
+}
 export interface AppState {
-  wallet: {
-    [key: string]: { address: string; isFetchBatch: boolean; name?: string }[];
-  };
   contacts: IContact[];
   wallets: IWallet[];
   labels: ILabel[];
   authStatus: AuthenticationStatus;
+  credential: ICredential;
 }
 
 const initialState: AppState = {
-  wallet: {},
   contacts: [],
   wallets: [],
   labels: [],
   authStatus: "unauthenticated",
+
+  credential: {
+    address: null,
+    loginMethod: null,
+    name: null,
+    jwt: null,
+  },
 };
 
 export const appSlice = createSlice({
@@ -55,6 +65,17 @@ export const appSlice = createSlice({
     setUnauthenticated: (state) => {
       state.authStatus = "unauthenticated";
     },
+
+    setCredential: (state, action: PayloadAction<{ data: ICredential }>) => {
+      state.credential = action.payload.data;
+    },
+    logout: (state) => {
+      state.credential = initialState.credential;
+      state.contacts = initialState.contacts;
+      state.wallets = initialState.wallets;
+      state.labels = initialState.labels;
+      state.authStatus = initialState.authStatus;
+    },
   },
 });
 
@@ -66,6 +87,8 @@ export const {
   setAuthLoading,
   setAuthenticated,
   setUnauthenticated,
+  setCredential,
+  logout,
 } = appSlice.actions;
 
 export default appSlice.reducer;
