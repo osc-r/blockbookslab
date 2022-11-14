@@ -9,7 +9,7 @@ import useTransactionHistoryDrawer from "../../../components/useTransactionHisto
 import useAddTagForm from "../../../components/useAddTagForm";
 
 import { useSelector } from "react-redux";
-import {} from "../../../store/appSlice";
+import { ILabel } from "../../../store/appSlice";
 import { RootState } from "../../../store/store";
 import { ethers } from "ethers";
 import Resolution from "@unstoppabledomains/resolution";
@@ -25,8 +25,14 @@ const TransactionPage = () => {
   const authState = useSelector((state: RootState) => state.app.authStatus);
   const credential = useSelector((state: RootState) => state.app.credential);
   const walletState = useSelector((state: RootState) => state.app.wallets);
+  const contactState = useSelector((state: RootState) => state.app.contacts);
 
   const [transactionList, setTransactionList] = useState<any[]>([]);
+  const [pagination, setPagination] = useState({
+    current: "0",
+    limit: "30",
+    totalItem: 0,
+  });
 
   const [isAddContact, setIsAddContact] = useState<{
     addr: string;
@@ -34,7 +40,7 @@ const TransactionPage = () => {
   }>({ addr: "", name: "" });
   const [currentMemo, setCurrentMemo] = useState<string | null>("");
   const [currentTxHash, setCurrentTxHash] = useState<string | null>("");
-  const [currentTag, setCurrentTag] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState<ILabel[]>([]);
   const [selectedTx, setSelectedTx] = useState<TransactionHistory>();
 
   const [connectedState, setConnectedState] = useState(false);
@@ -82,23 +88,21 @@ const TransactionPage = () => {
   };
 
   const onClickRow = (data: TransactionHistory) => {
-    setSelectedTx(data);
-    openDrawer();
+    // setSelectedTx(data);
+    // openDrawer();
   };
 
   const onSubmitMemo = async ({ memo }: { memo: string | null }) => {
-    const response = await service.POST_TX_DETAILS({
+    const response = await service.POST_TX_MEMO({
       txHash: currentTxHash as string,
       memo,
-      labels: [],
     });
     response.success && getTx();
   };
 
   const onSubmitTags = async ({ tags }: { tags: number[] }) => {
-    const response = await service.POST_TX_DETAILS({
+    const response = await service.POST_TX_LABELS({
       txHash: currentTxHash as string,
-      memo: currentMemo,
       labels: tags,
     });
     response.success && getTx();
@@ -163,122 +167,122 @@ const TransactionPage = () => {
     }
   }, [isConnected, credential]);
 
-  const getTx = useCallback(async () => {
-    setIsTxFetching(true);
-    if (connectedState && credential.address && authState === "authenticated") {
-      const { success, data } = await service.GET_TRANSACTIONS();
-      if (success && data) {
-        const provider = new ethers.providers.AlchemyProvider(
-          undefined,
-          "6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK"
-        );
-        const mapped: TransactionHistory[] = [];
-        const addr: string[] = [];
-        const myMap = new Map<
-          string,
-          { ensName?: string | null; unstoppableDomain?: string | null }
-        >();
-
-        data.forEach((item) => {
-          const indexFrom = addr.findIndex((i) => i === item.from_addr);
-          const indexTo = addr.findIndex((i) => i === item.to_addr);
-          if (indexFrom === -1) {
-            addr.push(item.from_addr);
-          }
-          if (indexTo === -1) {
-            addr.push(item.to_addr);
-          }
+  const getTx = useCallback(
+    async (current?: string | number) => {
+      setIsTxFetching(true);
+      if (
+        connectedState &&
+        credential.address &&
+        authState === "authenticated"
+      ) {
+        let { success, data } = await service.GET_TRANSACTIONS({
+          current: current ? current.toString() : "0",
+          limit: "30",
         });
 
-        const resolution = new Resolution({
-          sourceConfig: {
-            uns: {
-              locations: {
-                Layer1: {
-                  url: "https://eth-mainnet.g.alchemy.com/v2/6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK",
-                  network: "mainnet",
-                },
-                Layer2: {
-                  url: "https://polygon-mainnet.g.alchemy.com/v2/Nn8lO4ZZrMg4sxysRc09-5EvZGoXIQ-V",
-                  network: "polygon-mainnet",
-                },
-              },
-            },
-          },
-        });
+        if (success && data) {
+          const provider = new ethers.providers.AlchemyProvider(
+            undefined,
+            "6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK"
+          );
+          const mapped: TransactionHistory[] = [];
+          const addr: string[] = [];
+          const myMap = new Map<
+            string,
+            { ensName?: string | null; unstoppableDomain?: string | null }
+          >();
 
-        addr.push("0x88bc9b6c56743a38223335fac05825d9355e9f83");
+          // data.forEach((item) => {
+          //   const indexFrom = addr.findIndex((i) => i === item.from_addr);
+          //   const indexTo = addr.findIndex((i) => i === item.to_addr);
+          //   if (indexFrom === -1) {
+          //     addr.push(item.from_addr);
+          //   }
+          //   if (indexTo === -1) {
+          //     addr.push(item.to_addr);
+          //   }
+          // });
 
-        const pm = addr.map(async (i) => {
-          let ensName, unstoppableDomain;
+          // const resolution = new Resolution({
+          //   sourceConfig: {
+          //     uns: {
+          //       locations: {
+          //         Layer1: {
+          //           url: "https://eth-mainnet.g.alchemy.com/v2/6tdUkHXZUeJy1VvUEAKuCVVgj9O8Z3OK",
+          //           network: "mainnet",
+          //         },
+          //         Layer2: {
+          //           url: "https://polygon-mainnet.g.alchemy.com/v2/Nn8lO4ZZrMg4sxysRc09-5EvZGoXIQ-V",
+          //           network: "polygon-mainnet",
+          //         },
+          //       },
+          //     },
+          //   },
+          // });
 
-          try {
-            const domain = await resolution.reverseTokenId(i);
-            const res = await axios.get(
-              `https://metadata.unstoppabledomains.com/metadata/${domain}`
-            );
-            if (res.data.name) {
-              unstoppableDomain = res.data.name;
-            } else {
-              ensName = await provider.lookupAddress(i);
-            }
-            myMap.set(i, { ensName, unstoppableDomain });
-            return true;
-          } catch (error) {
-            console.log("ERR ==> ", error);
-            return false;
-          }
-        });
+          // addr.push("0x88bc9b6c56743a38223335fac05825d9355e9f83");
 
-        await Promise.all(pm);
+          // const pm = addr.map(async (i) => {
+          //   let ensName, unstoppableDomain;
 
-        for (let x = 0; x < data.length; x++) {
-          const item = data[x];
-          let ensName, unstoppableDomain;
+          //   try {
+          //     const domain = await resolution.reverseTokenId(i);
+          //     const res = await axios.get(
+          //       `https://metadata.unstoppabledomains.com/metadata/${domain}`
+          //     );
+          //     if (res.data.name) {
+          //       unstoppableDomain = res.data.name;
+          //     } else {
+          //       ensName = await provider.lookupAddress(i);
+          //     }
+          //     myMap.set(i, { ensName, unstoppableDomain });
+          //     return true;
+          //   } catch (error) {
+          //     console.log("ERR ==> ", error);
+          //     return false;
+          //   }
+          // });
 
-          const addrList = walletState.map((i) => i.address.toLowerCase());
+          // await Promise.all(pm);
 
-          let isDeposit = addrList.includes(item.to_addr.toLowerCase());
-          let isWithdraw = addrList.includes(item.from_addr.toLowerCase());
+          //   ensName = myMap.get(
+          //     isDeposit ? item.from_addr : item.to_addr
+          //   )?.ensName;
 
-          if (isDeposit && isWithdraw) {
-            const owner = walletState.find((i) => i.name === item.owner);
-            if (
-              owner &&
-              owner.address.toLowerCase() === item.to_addr.toLowerCase()
-            ) {
-              isDeposit = true;
-            } else {
-              isDeposit = false;
-            }
-          }
+          //   unstoppableDomain = myMap.get(
+          //     isDeposit ? item.from_addr : item.to_addr
+          //   )?.unstoppableDomain;
 
-          ensName = myMap.get(
-            isDeposit ? item.from_addr : item.to_addr
-          )?.ensName;
-
-          unstoppableDomain = myMap.get(
-            isDeposit ? item.from_addr : item.to_addr
-          )?.unstoppableDomain;
-
-          mapped.push({
-            ...item,
-            key: x.toString(),
-            isDeposit,
-            unstoppableDomain,
-            ensName,
-          });
+          //   mapped.push({
+          //     ...item,
+          //     key: x.toString(),
+          //     unstoppableDomain,
+          //     ensName,
+          //   });
+          // }
+          // setTransactionList(mapped);
+          setTransactionList(
+            data.txList.map((item, index) => {
+              return {
+                ...item,
+                key: index,
+                unstoppableDomain: null,
+                ensName: null,
+              };
+            })
+          );
+          setPagination(data.pagination);
+        } else {
+          setTransactionList([]);
         }
-        setTransactionList(mapped);
-      } else {
-        setTransactionList([]);
+        setIsTxFetching(false);
+        return;
       }
+      setTransactionList([]);
       setIsTxFetching(false);
-      return;
-    }
-    setTransactionList([]);
-    setIsTxFetching(false);
-  }, [connectedState, credential.address, authState, walletState]);
+    },
+    [connectedState, credential.address, authState]
+  );
 
   useEffect(() => {
     getTx();
@@ -331,6 +335,8 @@ const TransactionPage = () => {
           onClickMemo={onClickMemo}
           onClickTag={onClickTags}
           onClickRow={onClickRow}
+          pagination={pagination}
+          getTx={getTx}
         />
       ) : (
         <Carousel
@@ -380,7 +386,11 @@ const TransactionPage = () => {
       {connectedState &&
         authState === "authenticated" &&
         transactionList.length > 0 && (
-          <button className="add-wallet-btn-m csv" onClick={downloadCSV}>
+          <button
+            disabled
+            className="add-wallet-btn-m csv"
+            onClick={downloadCSV}
+          >
             CSV
           </button>
         )}

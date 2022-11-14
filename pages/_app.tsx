@@ -113,14 +113,14 @@ export default function App({ Component, pageProps }: AppProps) {
         signature,
       });
 
-      const authenticated = Boolean(response.data.token);
+      const authenticated = Boolean(response.data.accessToken);
       if (!authenticated) {
         setAuthStatus("unauthenticated");
         store.dispatch(setUnauthenticated());
         return false;
       }
 
-      const jwt = response.data.token;
+      const jwt = response.data.accessToken;
       instance.defaults.headers.common["Authorization"] = `Bearer ${jwt}`;
 
       store.dispatch(setAuthenticated());

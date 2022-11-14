@@ -1,6 +1,6 @@
-import { Table, Tag, Tooltip } from "antd";
+import { Table, TableProps, Tag, Tooltip } from "antd";
 import React, { useEffect, useState } from "react";
-import { StarOutlined, StarFilled } from "@ant-design/icons";
+import { StarOutlined, StarFilled, SelectOutlined } from "@ant-design/icons";
 import { Typography } from "antd";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -9,25 +9,30 @@ import ArrowLeft from "../../../public/images/arrowLeft.svg";
 import ArrowRight from "../../../public/images/arrowRight.svg";
 import { ethers } from "ethers";
 import LetteredAvatar from "lettered-avatar";
+import { ExpandableConfig } from "antd/lib/table/interface";
+import { ILabel } from "../../../store/appSlice";
 
 const { Text } = Typography;
 
 export interface TransactionHistory {
   owner: string | null;
   tx_hash: string;
-  chain_id: number;
-  block_number: string;
   from_addr: string;
   to_addr: string;
   tx_timestamp: number;
-  tx_value: number;
+  tx_value: string;
   tx_gas: number;
   tx_gas_price: number;
   tx_actions: string | null;
   rate: number;
   memo: null | string;
-  labels: string[];
+  labels: ILabel[];
   contact_name: null | string;
+  type: string;
+  action: string;
+  tokenDecimal: string;
+  symbol: string;
+  tokenValue: string;
 
   key?: string;
   isDeposit?: boolean;
@@ -112,6 +117,9 @@ const TableWithStyled = styled(Table)`
       color: white;
     }
   }
+  .ant-table-row-expand-icon {
+    padding: 0;
+  }
 `;
 
 const TableComponent = ({
@@ -123,6 +131,7 @@ const TableComponent = ({
   onClickAddress,
   onClickMemo,
   onClickTag,
+  getTx,
 }: {
   data: TransactionHistory[];
   pagination?: any;
@@ -132,6 +141,7 @@ const TableComponent = ({
   onClickAddress: (addr: string, name: string) => void;
   onClickMemo: (record: TransactionHistory) => void;
   onClickTag: (record: TransactionHistory) => void;
+  getTx: (current: string | number) => void;
 }) => {
   const defaultColumns = [
     {
@@ -206,17 +216,27 @@ const TableComponent = ({
       title: "Tag",
       width: "20%",
       render: (_: any, record: TransactionHistory, index: number) => {
+        const color = (type: string) => {
+          switch (type) {
+            case "ERC20":
+              return "cyan";
+            case "ERC721":
+              return "purple";
+            case "ERC1155":
+              return "orange";
+          }
+        };
         return (
           <React.Fragment>
-            {record.tx_actions && (
-              <Tag color="green" key="1">
-                {record.tx_actions}
+            {record.type !== "NORMAL" && (
+              <Tag color={color(record.type)} key="1">
+                {record.type}
               </Tag>
             )}
             {record.labels.length > 0 ? (
               record.labels.map((label, index) => (
                 <Tag color="green" key={index}>
-                  {label}
+                  {label?.name}
                 </Tag>
               ))
             ) : record.tx_actions ? null : (
@@ -240,6 +260,7 @@ const TableComponent = ({
       align: "right",
       width: "20%",
       render: (_: any, record: TransactionHistory) => {
+        console.log({ record });
         const format = (number: number, decimalPoint: number = 4) =>
           new Intl.NumberFormat("en-US", {
             minimumFractionDigits: decimalPoint,
@@ -248,11 +269,17 @@ const TableComponent = ({
 
         const RATE = format(record.rate, 2);
 
-        const amountInEther = format(
-          parseFloat(
-            ethers.utils.formatUnits(record.tx_value.toString(), "ether")
-          )
-        );
+        const amountInEther =
+          record.tx_value !== "null"
+            ? format(
+                parseFloat(
+                  ethers.utils.formatUnits(
+                    ethers.BigNumber.from(record.tx_value),
+                    record.tokenDecimal
+                  )
+                )
+              )
+            : record.tx_value;
 
         return (
           <div
@@ -268,13 +295,19 @@ const TableComponent = ({
                 fontFamily: "Roboto",
               }}
             >
-              {record?.isDeposit ? "+" : "-"}$
-              {format((record.rate * parseFloat(amountInEther)) as number)}
+              {record?.isDeposit ? "+" : "-"}
+              {["ERC721", "ERC1155"].includes(record.type)
+                ? record.tokenValue
+                : amountInEther}{" "}
+              {record.symbol}
+              {/* {format((record.rate * parseFloat(amountInEther)) as number)} */}
             </Text>
-            <Text type="secondary">
-              {amountInEther} ETH
-              <div>({RATE} USD/ETH)</div>
-            </Text>
+            {/* {(record.type === "ERC20" || record.type === "NORMAL") && (
+              <Text type="secondary">
+                {amountInEther} {record.symbol}
+                <div>({RATE} USD/ETH)</div>
+              </Text>
+            )} */}
           </div>
         );
       },
@@ -328,41 +361,71 @@ const TableComponent = ({
         };
       },
     },
+    {
+      title: "",
+      dataIndex: "tx_hash",
+      width: "5%",
+
+      render: (_: any, record: TransactionHistory) => {
+        return (
+          <a
+            href={`https://etherscan.io/tx/${record.tx_hash}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <SelectOutlined style={{ opacity: 0.3 }} />
+          </a>
+        );
+      },
+    },
   ];
+  const expandable: ExpandableConfig<TransactionHistory> = {
+    expandedRowRender: (record: TransactionHistory) => (
+      <p style={{ margin: 0 }}>{record.action}</p>
+    ),
+    rowExpandable: (record: TransactionHistory) => Boolean(record.action),
+  };
+
+  const tableProps: TableProps<any> = {
+    rowClassName: "editable-row",
+    rowKey: (_, index) => index!!,
+    onRow: (record) => {
+      return {
+        onClick: () => {
+          onClickRow && onClickRow(record as TransactionHistory);
+        },
+      };
+    },
+    expandable,
+    columns: defaultColumns as ColumnTypes,
+  };
 
   return (
     <TableWithStyled
-      rowClassName={"editable-row"}
       dataSource={data}
-      columns={defaultColumns as ColumnTypes}
-      scroll={data.length > 0 ? { y: 99 * 5 } : undefined}
-      // pagination={{
-      //   ...pagination,
-      //   position: ["bottomCenter"],
-      //   defaultCurrent: 3,
-      //   total: 400 - 4,
-      //   showSizeChanger: false,
-      //   showLessItems: true,
-      //   itemRender: (_, type, original) => {
-      //     if (type === "prev") {
-      //       return <ArrowLeft />;
-      //     }
-      //     if (type === "next") {
-      //       return <ArrowRight />;
-      //     }
-      //     return original;
-      //   },
-      // }}
-      // rowKey="tx_hash"
-      pagination={false}
-      loading={loading}
-      onRow={(record) => {
-        return {
-          onClick: () => {
-            onClickRow && onClickRow(record as TransactionHistory);
-          },
-        };
+      scroll={data.length > 0 ? { y: 99 * 4 } : undefined}
+      pagination={{
+        onChange: (page, _pageSize) => {
+          getTx(page - 1);
+        },
+        current: pagination.current + 1,
+        defaultPageSize: pagination.limit,
+        position: ["bottomCenter"],
+        total: pagination.totalItem,
+        showSizeChanger: false,
+        showLessItems: true,
+        itemRender: (_, type, original) => {
+          if (type === "prev") {
+            return <ArrowLeft />;
+          }
+          if (type === "next") {
+            return <ArrowRight />;
+          }
+          return original;
+        },
       }}
+      loading={loading}
+      {...tableProps}
     />
   );
 };

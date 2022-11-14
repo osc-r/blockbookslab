@@ -8,14 +8,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>
 ) {
-  console.log("GET TX API");
   const response = await axios.get(
     // "http://localhost:4000/api/v1/auth/nonce",
-    `${ENDPOINT}/transactions`,
+    `${ENDPOINT}/api/v1/transactions`,
     {
       headers: {
         // @ts-ignore
         Authorization: req.headers.authorization,
+      },
+      params: {
+        current: req.query.current,
+        limit: req.query.limit,
       },
     }
   );

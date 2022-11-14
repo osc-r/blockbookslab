@@ -64,8 +64,13 @@ const service = {
   GET_FETCH_TRANSACTIONS_STATUS: (userAddress: string) => {
     return serviceInstance("GET", `/transaction/${userAddress}`);
   },
-  GET_TRANSACTIONS: () => {
-    return serviceInstance<TransactionHistory[]>("GET", `/api/transactions`);
+  GET_TRANSACTIONS: (options: { current: string; limit: string }) => {
+    return serviceInstance<{
+      txList: TransactionHistory[];
+      pagination: { current: string; limit: string; totalItem: number };
+    }>("GET", `/api/transactions`, {
+      params: { current: options.current, limit: options.limit },
+    });
   },
   GET_ACTION_BY_TX_HASH: (txHash: string) => {
     return serviceInstance("GET", `/action/${txHash}`);
@@ -131,6 +136,28 @@ const service = {
       `/api/transactions/details`,
       {},
       { txHash, memo, labels }
+    );
+  },
+  POST_TX_MEMO: ({ txHash, memo }: { txHash: string; memo: string | null }) => {
+    return serviceInstance(
+      "POST",
+      `/api/transactions/details/memo`,
+      {},
+      { txHash, memo }
+    );
+  },
+  POST_TX_LABELS: ({
+    txHash,
+    labels,
+  }: {
+    txHash: string;
+    labels: number[];
+  }) => {
+    return serviceInstance(
+      "POST",
+      `/api/transactions/details/labels`,
+      {},
+      { txHash, labels }
     );
   },
   POST_WALLET: ({

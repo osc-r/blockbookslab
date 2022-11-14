@@ -8,9 +8,18 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>
 ) {
-  const response = await axios.get(
-    // "http://localhost:4000/api/v1/auth/nonce",
-    `${ENDPOINT}/api/v1/auth/nonce`
+  const response = await axios.post(
+    `${ENDPOINT}/api/v1/transactions/details/labels`,
+    {
+      txHash: req.body.txHash,
+      txLabels: req.body.labels,
+    },
+    {
+      headers: {
+        // @ts-ignore
+        Authorization: req.headers.authorization,
+      },
+    }
   );
   res.send(response.data.data);
 }

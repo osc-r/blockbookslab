@@ -105,7 +105,7 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
       for (let i = 0; i < labels.length; i++) {
         children.push(
           <Option key={labels[i].id.toString()} value={labels[i].id.toString()}>
-            {labels[i].label}
+            {labels[i].name}
           </Option>
         );
       }
@@ -120,7 +120,7 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
             let id: string | undefined;
 
             labels.forEach((j) => {
-              if (j.label === i) {
+              if (j.name === i.name) {
                 id = j.id.toString();
               }
             });
@@ -130,7 +130,7 @@ const useTransactionHistoryDrawer = (selectedTx?: TransactionHistory) => {
         ];
         if (selectedTx.tx_actions) {
           arr.push({
-            label: selectedTx.tx_actions,
+            label: { id: selectedTx.tx_actions, name: selectedTx.tx_actions },
             value: selectedTx.tx_actions,
           });
         }

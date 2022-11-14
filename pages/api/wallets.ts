@@ -10,7 +10,7 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const response = await axios.post(
-      `${ENDPOINT}/wallets`,
+      `${ENDPOINT}/api/v1/wallets`,
       {
         address: req.body.userAddress,
         chain_id: "1",
@@ -25,7 +25,7 @@ export default async function handler(
     );
     res.send(response.data.data);
   } else {
-    const response = await axios.get(`${ENDPOINT}/wallets`, {
+    const response = await axios.get(`${ENDPOINT}/api/v1/wallets`, {
       headers: {
         // @ts-ignore
         Authorization: req.headers.authorization,

@@ -10,7 +10,7 @@ export default async function handler(
 ) {
   if (req.method === "POST") {
     const response = await axios.post(
-      `${ENDPOINT}/contacts`,
+      `${ENDPOINT}/api/v1/contacts`,
       {
         address: req.body.userAddress,
         name: req.body.name,
@@ -25,7 +25,7 @@ export default async function handler(
 
     res.send(response.data.data);
   } else {
-    const response = await axios.get(`${ENDPOINT}/contacts`, {
+    const response = await axios.get(`${ENDPOINT}/api/v1/contacts`, {
       headers: {
         // @ts-ignore
         Authorization: req.headers.authorization,

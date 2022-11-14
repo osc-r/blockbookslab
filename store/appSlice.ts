@@ -8,11 +8,15 @@ export interface IWallet {
 }
 
 export interface ILabel {
-  id: number;
-  label: string;
+  name: string;
+  id: string;
 }
 
-export interface IContact {}
+export interface IContact {
+  address: string;
+  id: string;
+  name: string;
+}
 
 interface ICredential {
   address: string | null;

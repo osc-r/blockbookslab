@@ -8,15 +8,17 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<any>
 ) {
+  const ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT;
+
   const verifyRes = await axios.post(
-    `${ENDPOINT}/login`,
+    `${ENDPOINT}/api/v1/auth/verify`,
     // "http://localhost:4000/api/v1/auth/verify",
     // "http://localhost:8000/login",
 
     { message: req.body.message, signature: req.body.signature }
   );
 
-  console.log({ verifyRes });
+  console.log({ verifyRes: verifyRes.data.data });
 
   res.json(verifyRes.data.data);
 }

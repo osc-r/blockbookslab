@@ -28,6 +28,7 @@ const Notification = () => {
   const credential = useSelector((state: RootState) => state.app.credential);
 
   const badge = useSelector((state: RootState) => state.notification);
+  const authState = useSelector((state: RootState) => state.app.authStatus);
 
   const {
     epnsSDKSocket,
@@ -114,46 +115,55 @@ const Notification = () => {
     <div style={{ position: "relative" }}>
       <NotificationButton onClick={onToggle} isOpen={isOpen}>
         <BellOutlined style={{ fontSize: 22, opacity: 1 }} color={"#00c3c1"} />
-        {badge.count > 0 && <span className="badge">{badge.count}</span>}
+        {authState === "authenticated" && badge.count > 0 && (
+          <span className="badge">{badge.count}</span>
+        )}
       </NotificationButton>
 
-      <NotificationBox isOpen={isOpen} isSmall={notifications.length === 0}>
+      <NotificationBox
+        isOpen={isOpen}
+        isSmall={
+          authState === "authenticated" ? notifications.length === 0 : true
+        }
+      >
         <div className="box">
-          {notifications.length === 0 && (
-            <Result
-              icon={<SmileOutlined style={{ color: "#19c9c7" }} />}
-              title="You have no notifications!"
-            />
-          )}
-          {notifications.map((oneNotification, i) => {
-            const {
-              cta,
-              title,
-              message,
-              app,
-              icon,
-              image,
-              url,
-              blockchain,
-              notification,
-            } = oneNotification;
+          {(authState === "unauthenticated" ||
+            (authState === "authenticated" && notifications.length === 0 )) && (
+              <Result
+                icon={<SmileOutlined style={{ color: "#19c9c7" }} />}
+                title="No notifications!"
+              />
+            )}
+          {authState === "authenticated" &&
+            notifications.map((oneNotification, i) => {
+              const {
+                cta,
+                title,
+                message,
+                app,
+                icon,
+                image,
+                url,
+                blockchain,
+                notification,
+              } = oneNotification;
 
-            return (
-              <Card
-                key={i}
-                title={
-                  <span style={{ display: "flex", alignItems: "center" }}>
-                    <Logo iconSize={32} displayText={false} />
-                    {title}
-                  </span>
-                }
-                style={{ margin: "12px 0" }}
-                type="inner"
-              >
-                <p style={{ wordBreak: "break-all" }}>{message}</p>
-              </Card>
-            );
-          })}
+              return (
+                <Card
+                  key={i}
+                  title={
+                    <span style={{ display: "flex", alignItems: "center" }}>
+                      <Logo iconSize={32} displayText={false} />
+                      {title}
+                    </span>
+                  }
+                  style={{ margin: "12px 0" }}
+                  type="inner"
+                >
+                  <p style={{ wordBreak: "break-all" }}>{message}</p>
+                </Card>
+              );
+            })}
         </div>
       </NotificationBox>
 

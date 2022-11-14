@@ -9,11 +9,11 @@ export default async function handler(
   res: NextApiResponse<any>
 ) {
   const response = await axios.post(
-    `${ENDPOINT}/transactions/details`,
+    `${ENDPOINT}/api/v1/transactions/details`,
     {
-      tx_hash: req.body.txHash,
+      txHash: req.body.txHash,
       memo: req.body.memo,
-      labels: req.body.labels,
+      txLabels: req.body.labels,
     },
     {
       headers: {

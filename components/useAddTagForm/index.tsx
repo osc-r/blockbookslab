@@ -5,6 +5,7 @@ import { tagRender } from "../useTransactionHistoryDrawer";
 import { RootState } from "../../store/store";
 import { useSelector } from "react-redux";
 import { Option } from "antd/lib/mentions";
+import { ILabel } from "../../store/appSlice";
 
 const ModalWithStyled = styled(ModalAntd)`
   .ant-modal-content {
@@ -60,7 +61,7 @@ const useAddTagForm = () => {
       onSubmit,
       tags,
     }: {
-      tags: string[];
+      tags: ILabel[];
       onSubmit: ({ tags }: { tags: number[] }) => Promise<void>;
     }) => {
       const [form] = Form.useForm();
@@ -88,7 +89,7 @@ const useAddTagForm = () => {
       for (let i = 0; i < labels.length; i++) {
         children.push(
           <Option key={labels[i].id.toString()} value={labels[i].id.toString()}>
-            {labels[i].label}
+            {labels[i].name}
           </Option>
         );
       }
@@ -116,16 +117,16 @@ const useAddTagForm = () => {
                 tagRender={tagRender}
                 mode="multiple"
                 labelInValue
-                defaultValue={tags.map((i) => {
-                  let id = undefined;
+                defaultValue={tags.map((currentLabel) => {
+                  // let id = undefined;
 
-                  labels.forEach((j) => {
-                    if (j.label === i) {
-                      id = j.id.toString();
-                    }
-                  });
+                  // labels.forEach((label) => {
+                  //   if (label.name === currentLabel.name) {
+                  //     id = label.id.toString();
+                  //   }
+                  // });
 
-                  return { label: i, value: id };
+                  return { label: currentLabel.name, value: currentLabel.id };
                 })}
               >
                 {children}
@@ -136,7 +137,7 @@ const useAddTagForm = () => {
       );
     };
     return ModalComponent;
-  }, [visible]);
+  }, [visible, labels]);
 
   return { openModal: onOpen, closeModal: onClose, TagModal };
 };

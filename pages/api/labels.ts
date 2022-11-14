@@ -10,7 +10,7 @@ export default async function handler(
 ) {
   const response = await axios.get(
     // "http://localhost:4000/api/v1/auth/nonce",
-    `${ENDPOINT}/labels`,
+    `${ENDPOINT}/api/v1/labels`,
     {
       headers: {
         // @ts-ignore
