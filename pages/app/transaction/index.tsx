@@ -137,7 +137,7 @@ const TransactionPage = () => {
     address: string;
   }) => {
     if (isAddContact.addr === "") {
-      message.loading("Syncing new wallet transactions", 0);
+      message.loading("Syncing wallet transactions", 0);
 
       const response = await service.POST_WALLET({
         userAddress: address,

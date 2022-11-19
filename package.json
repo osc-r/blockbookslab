@@ -31,6 +31,7 @@
     "react-responsive-carousel": "^3.2.23",
     "redux-persist": "^6.0.0",
     "siwe": "^1.1.6",
+    "socket.io-client": "^4.5.3",
     "styled-components": "^5.3.5",
     "wagmi": "^0.6.4",
     "wallet-validator": "^0.3.14"

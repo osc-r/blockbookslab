@@ -70,7 +70,7 @@ const useAddTagForm = () => {
         form
           .validateFields()
           .then((data) => {
-            if (data && data.tags && data.tags.length > 0) {
+            if (data && Array.isArray(data.tags)) {
               onSubmit({
                 tags: data.tags.map((i: { value: string }) => i.value),
               });

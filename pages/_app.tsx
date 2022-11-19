@@ -34,6 +34,8 @@ import {
   setWallets,
 } from "../store/appSlice";
 import WalletConnectionObserver from "../contexts/WalletConnectionObserver";
+import { message as messageToast } from "antd";
+import WebSocket from "../contexts/WebSocket";
 
 const { chains, provider } = configureChains(
   [
@@ -122,6 +124,9 @@ export default function App({ Component, pageProps }: AppProps) {
 
       const jwt = response.data.accessToken;
       instance.defaults.headers.common["Authorization"] = `Bearer ${jwt}`;
+      if (!response.data.isSynced) {
+        messageToast.loading("Syncing wallet transactions", 0);
+      }
 
       store.dispatch(setAuthenticated());
       store.dispatch(
@@ -169,6 +174,7 @@ export default function App({ Component, pageProps }: AppProps) {
               <GlobalStyle />
               <Provider store={store}>
                 <PersistGate loading={null} persistor={persistor}>
+                  <WebSocket />
                   <WalletConnectionObserver />
                   <Container>{render()}</Container>
                 </PersistGate>
