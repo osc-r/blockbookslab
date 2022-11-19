@@ -12,7 +12,7 @@ const WebSocket = () => {
 
     if (typeof window !== "undefined") {
       console.log({ walletState });
-      socket = io(process.env.NEXT_PUBLIC_API_ENDPOINT, {
+      socket = io(process.env.NEXT_PUBLIC_WEB_SOCKET_ENDPOINT, {
         transports: ["websocket"],
       });
 

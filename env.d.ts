@@ -5,6 +5,7 @@ declare global {
       NEXT_PUBLIC_NOTIFICATION_ENV: string;
       NEXT_PUBLIC_NOTIFICATION_APP_NAME: string;
       NEXT_PUBLIC_API_ENDPOINT: string;
+      NEXT_PUBLIC_WEB_SOCKET_ENDPOINT: string;
     }
   }
 }
