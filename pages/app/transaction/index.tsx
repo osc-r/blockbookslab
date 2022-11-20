@@ -8,8 +8,8 @@ import service from "../../../services/apiService";
 import useTransactionHistoryDrawer from "../../../components/useTransactionHistoryDrawer";
 import useAddTagForm from "../../../components/useAddTagForm";
 
-import { useSelector } from "react-redux";
-import { ILabel } from "../../../store/appSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { ILabel, setWallets } from "../../../store/appSlice";
 import { RootState } from "../../../store/store";
 import { ethers } from "ethers";
 import Resolution from "@unstoppabledomains/resolution";
@@ -18,10 +18,15 @@ import "react-responsive-carousel/lib/styles/carousel.min.css"; // requires a lo
 import { Carousel } from "react-responsive-carousel";
 import Image from "next/image";
 import { message } from "antd";
+import { wallet } from "@rainbow-me/rainbowkit";
 
 const TransactionPage = () => {
   const { isConnected } = useAccount();
+  const dispatch = useDispatch();
 
+  const refreshTx = useSelector(
+    (state: RootState) => state.app.refreshTransaction
+  );
   const authState = useSelector((state: RootState) => state.app.authStatus);
   const credential = useSelector((state: RootState) => state.app.credential);
   const walletState = useSelector((state: RootState) => state.app.wallets);
@@ -108,27 +113,6 @@ const TransactionPage = () => {
     response.success && getTx();
   };
 
-  const getStatus = async (address: string) => {
-    let timer: ReturnType<typeof setInterval>;
-
-    timer = setInterval(async () => {
-      const response = await service.GET_TX_RESULT({
-        address: address.toLowerCase(),
-      });
-
-      console.log({ response });
-
-      if (response.success && response.data.task_status === "SUCCESS") {
-        message.destroy();
-        setTimeout(() => {
-          message.success("New Wallet has been synced");
-        }, 1500);
-        getTx();
-        clearInterval(timer);
-      }
-    }, 10000);
-  };
-
   const onSubmitContactForm = async ({
     name,
     address,
@@ -139,12 +123,13 @@ const TransactionPage = () => {
     if (isAddContact.addr === "") {
       message.loading("Syncing wallet transactions", 0);
 
-      const response = await service.POST_WALLET({
+      await service.POST_WALLET({
         userAddress: address,
         name,
       });
 
-      response.success && getStatus(address);
+      const wallets = await service.GET_WALLETS();
+      wallets.success && wallets.data && dispatch(setWallets(wallets.data));
     } else {
       const response = await service.POST_CONTACT({
         userAddress: address,
@@ -286,7 +271,7 @@ const TransactionPage = () => {
 
   useEffect(() => {
     getTx();
-  }, [getTx]);
+  }, [getTx, refreshTx]);
 
   const downloadCSV = async () => {
     console.log("download");
@@ -309,7 +294,6 @@ const TransactionPage = () => {
 
   return (
     <TransactionContainer>
-      {/* <button onClick={getStatus}>get</button> */}
       {connectedState && (
         <div className="action-wrapper">
           <button disabled>Sort</button>

@@ -30,6 +30,7 @@ export interface AppState {
   labels: ILabel[];
   authStatus: AuthenticationStatus;
   credential: ICredential;
+  refreshTransaction: boolean;
 }
 
 const initialState: AppState = {
@@ -44,6 +45,8 @@ const initialState: AppState = {
     name: null,
     jwt: null,
   },
+
+  refreshTransaction: false,
 };
 
 export const appSlice = createSlice({
@@ -80,6 +83,10 @@ export const appSlice = createSlice({
       state.labels = initialState.labels;
       state.authStatus = initialState.authStatus;
     },
+
+    setRefreshTx: (state) => {
+      state.refreshTransaction = !state.refreshTransaction;
+    },
   },
 });
 
@@ -93,6 +100,7 @@ export const {
   setUnauthenticated,
   setCredential,
   logout,
+  setRefreshTx,
 } = appSlice.actions;
 
 export default appSlice.reducer;

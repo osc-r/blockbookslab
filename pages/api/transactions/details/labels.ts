@@ -1,6 +1,7 @@
 // Next.js API route support: https://nextjs.org/docs/api-routes/introduction
 import axios from "axios";
 import type { NextApiRequest, NextApiResponse } from "next";
+import * as https from "https";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT;
 
@@ -15,6 +16,9 @@ export default async function handler(
       txLabels: req.body.labels,
     },
     {
+      httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+      }),
       headers: {
         // @ts-ignore
         Authorization: req.headers.authorization,
