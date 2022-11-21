@@ -12,9 +12,9 @@ export default async function handler(
     // "http://localhost:4000/api/v1/auth/nonce",
     `${ENDPOINT}/api/v1/auth/nonce`,
     {
-      httpsAgent: new https.Agent({
-        rejectUnauthorized: false,
-      }),
+      // httpsAgent: new https.Agent({
+      //   rejectUnauthorized: false,
+      // }),
     }
   );
   res.send(response.data.data);
