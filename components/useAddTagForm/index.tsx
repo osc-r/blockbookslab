@@ -3,9 +3,10 @@ import styled from "styled-components";
 import React, { useMemo, useState } from "react";
 import { tagRender } from "../useTransactionHistoryDrawer";
 import { RootState } from "../../store/store";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Option } from "antd/lib/mentions";
-import { ILabel } from "../../store/appSlice";
+import { ILabel, setLabels } from "../../store/appSlice";
+import service from "../../services/apiService";
 
 const ModalWithStyled = styled(ModalAntd)`
   .ant-modal-content {
@@ -64,6 +65,9 @@ const useAddTagForm = () => {
       tags: ILabel[];
       onSubmit: ({ tags }: { tags: number[] }) => Promise<void>;
     }) => {
+      const dispatch = useDispatch();
+      const [newLabel, setNewLabel] = useState("");
+
       const [form] = Form.useForm();
 
       const handleOk = (e: React.MouseEvent<HTMLElement>) => {
@@ -83,6 +87,21 @@ const useAddTagForm = () => {
       const handleCancel = (e: React.MouseEvent<HTMLElement>) => {
         form.resetFields();
         setVisible(false);
+      };
+
+      const createNewLabel = async () => {
+        const { success } = await service.POST_LABEL({
+          name: newLabel,
+        });
+        if (success) {
+          message.success("New label created");
+          setNewLabel("");
+
+          const labels = await service.GET_LABELS();
+          labels.success && labels.data && dispatch(setLabels(labels.data));
+        } else {
+          message.error("Failed to create new label");
+        }
       };
 
       const children: React.ReactNode[] = [];
@@ -117,6 +136,11 @@ const useAddTagForm = () => {
                 tagRender={tagRender}
                 mode="multiple"
                 labelInValue
+                onInputKeyDown={(event) => {
+                  if (event.key === "Enter" && newLabel) createNewLabel();
+                }}
+                onSearch={(str) => setNewLabel(str)}
+                onBlur={() => setNewLabel("")}
                 defaultValue={tags.map((currentLabel) => {
                   // let id = undefined;
 

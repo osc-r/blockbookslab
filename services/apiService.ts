@@ -205,6 +205,16 @@ const service = {
   GET_TX_RESULT: ({ address }: { address: string }) => {
     return serviceInstance<any>("GET", `/api/transactions/results/${address}`);
   },
+  POST_LABEL: ({ name }: { name: string }) => {
+    return serviceInstance(
+      "POST",
+      `/api/labels`,
+      {},
+      {
+        name,
+      }
+    );
+  },
 };
 
 Object.freeze(service);
