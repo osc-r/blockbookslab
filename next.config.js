@@ -19,6 +19,11 @@ const nextConfig = {
         destination: "/transaction",
         permanent: true,
       },
+      {
+        source: "/app/:path*",
+        destination: "/transaction",
+        permanent: true,
+      },
     ];
   },
   images: {
