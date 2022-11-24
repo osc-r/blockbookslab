@@ -75,13 +75,13 @@ export default function App({ Component, pageProps }: AppProps) {
   const pathArr = router.pathname.split("/");
 
   const render = () => {
-    if (pathArr[1] && pathArr[1] === "app")
-      return (
-        <AppLayout title={pathArr[2]}>
-          <Component {...pageProps} />
-        </AppLayout>
-      );
-    return <Component {...pageProps} />;
+    // if (pathArr[1] && pathArr[1] === "app")
+    return (
+      <AppLayout title={pathArr[2]}>
+        <Component {...pageProps} />
+      </AppLayout>
+    );
+    // return <Component {...pageProps} />;
   };
 
   const authenticationAdapter = createAuthenticationAdapter({

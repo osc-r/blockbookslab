@@ -5,12 +5,12 @@ import { Typography } from "antd";
 import { format } from "date-fns";
 import Image from "next/image";
 import styled from "styled-components";
-import ArrowLeft from "../../../public/images/arrowLeft.svg";
-import ArrowRight from "../../../public/images/arrowRight.svg";
+import ArrowLeft from "../../public/images/arrowLeft.svg";
+import ArrowRight from "../../public/images/arrowRight.svg";
 import { ethers } from "ethers";
 import LetteredAvatar from "lettered-avatar";
 import { ExpandableConfig } from "antd/lib/table/interface";
-import { ILabel } from "../../../store/appSlice";
+import { ILabel } from "../../store/appSlice";
 
 const { Text } = Typography;
 

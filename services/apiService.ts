@@ -1,5 +1,5 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
-import { TransactionHistory } from "../pages/app/transaction/Table";
+import { TransactionHistory } from "../pages/transaction/Table";
 import { IContact, ILabel, IWallet } from "../store/appSlice";
 
 const ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT;

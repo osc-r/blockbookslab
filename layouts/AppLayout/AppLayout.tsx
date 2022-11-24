@@ -35,8 +35,8 @@ const AppLayout = ({
           <Logo iconSize={62} textSize={20} />
 
           <ul>
-            <li className={clsx(pathArr[2] === "transaction" && "active")}>
-              <Link href={"/app/transaction"}>
+            <li className={clsx(pathArr[1] === "transaction" && "active")}>
+              <Link href={"/transaction"}>
                 <span>
                   <TransactionIcon className="icon" />
                   <span>Transaction</span>
@@ -45,11 +45,11 @@ const AppLayout = ({
             </li>
             <li
               className={clsx(
-                pathArr[2] === "transfer" && "active",
+                pathArr[1] === "transfer" && "active",
                 "disabled"
               )}
             >
-              <Link href={active ? "/app/transfer" : "#"}>
+              <Link href={active ? "/transfer" : "#"}>
                 <span>
                   <TransferIcon className="icon" />
                   <span>Transfer</span>
@@ -57,9 +57,9 @@ const AppLayout = ({
               </Link>
             </li>
             <li
-              className={clsx(pathArr[2] === "asset" && "active", "disabled")}
+              className={clsx(pathArr[1] === "asset" && "active", "disabled")}
             >
-              <Link href={active ? "/app/asset" : "#"}>
+              <Link href={active ? "/asset" : "#"}>
                 <span>
                   <AssetIcon className="icon" />
                   <span>Asset</span>
@@ -68,11 +68,11 @@ const AppLayout = ({
             </li>
             <li
               className={clsx(
-                pathArr[2] === "analysis" && "active",
+                pathArr[1] === "analysis" && "active",
                 "disabled"
               )}
             >
-              <Link href={active ? "/app/analysis" : "#"}>
+              <Link href={active ? "/analysis" : "#"}>
                 <span>
                   <AnalysisIcon className="icon" />
                   <span>Analysis</span>
