@@ -12,50 +12,46 @@ const WebSocket = () => {
   useEffect(() => {
     let socket: any = null;
 
-    if (typeof window !== "undefined") {
-      try {
-        socket = io(process.env.NEXT_PUBLIC_WEB_SOCKET_ENDPOINT, {
-          transports: ["websocket"],
-          rejectUnauthorized: true,
-        });
+    try {
+      socket = io(process.env.NEXT_PUBLIC_WEB_SOCKET_ENDPOINT, {
+        transports: ["websocket"],
+        rejectUnauthorized: true,
+      });
 
-        socket.on("connect", () => {
-          console.log(socket.id);
-        });
+      socket.on("connect", () => {
+        console.log(socket.id);
+      });
 
-        socket.on(
-          "SYNCED_TRANSACTION_JOB",
-          (data: { success: string; address: string }) => {
-            const isNotify = walletState.find(
-              (i) => i.address === data.address
-            );
-            console.log({ data, isNotify, walletState });
-            if (isNotify) {
-              dispatch(setRefreshTx());
-              message.destroy();
-              setTimeout(() => {
-                message.success("Wallet has been completely synced");
-              }, 700);
-            }
+      socket.on(
+        "SYNCED_TRANSACTION_JOB",
+        (data: { success: string; address: string }) => {
+          const isNotify = walletState.find((i) => i.address === data.address);
+          console.log({ data, isNotify, walletState });
+          if (isNotify) {
+            dispatch(setRefreshTx());
+            message.destroy();
+            setTimeout(() => {
+              message.success("Wallet has been completely synced");
+            }, 700);
           }
-        );
+        }
+      );
 
-        socket.on("disconnect", () => {
-          console.log(socket.id);
-        });
+      socket.on("disconnect", () => {
+        console.log(socket.id);
+      });
 
-        socket.on("connect_error", (err: Error) => {
-          console.log(`connect_error due to ${err}`);
-        });
-      } catch (error) {
-        console.log("error => ", error);
-      }
+      socket.on("connect_error", (err: Error) => {
+        console.log(`connect_error due to ${err}`);
+      });
+    } catch (error) {
+      console.log("error => ", error);
     }
 
     return () => {
-      socket && socket.connected && socket.disconnect();
+      socket && socket.disconnect();
     };
-  }, [walletState, window]);
+  }, [walletState, dispatch]);
 
   return null;
 };

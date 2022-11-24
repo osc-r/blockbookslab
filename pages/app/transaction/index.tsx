@@ -121,12 +121,15 @@ const TransactionPage = () => {
     address: string;
   }) => {
     if (isAddContact.addr === "") {
-      message.loading("Syncing wallet transactions", 0);
-
-      await service.POST_WALLET({
+      const result = await service.POST_WALLET({
         userAddress: address,
         name,
       });
+      if (result.success) {
+        message.loading("Syncing wallet transactions", 0);
+      } else {
+        message.error("This wallet address has been added");
+      }
 
       const wallets = await service.GET_WALLETS();
       wallets.success && wallets.data && dispatch(setWallets(wallets.data));
