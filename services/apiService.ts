@@ -167,7 +167,7 @@ const service = {
     userAddress: string;
     name: string;
   }) => {
-    return serviceInstance(
+    return serviceInstance<{ isSynced: boolean }>(
       "POST",
       `/api/wallets`,
       {},

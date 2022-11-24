@@ -125,14 +125,18 @@ const TransactionPage = () => {
         userAddress: address,
         name,
       });
-      if (result.success) {
-        message.loading("Syncing wallet transactions", 0);
+      if (result.success && result.data) {
+        const wallets = await service.GET_WALLETS();
+        wallets.success && wallets.data && dispatch(setWallets(wallets.data));
+
+        if (!result.data.isSynced) {
+          message.loading("Syncing wallet transactions", 0);
+        } else {
+          getTx();
+        }
       } else {
         message.error("This wallet address has been added");
       }
-
-      const wallets = await service.GET_WALLETS();
-      wallets.success && wallets.data && dispatch(setWallets(wallets.data));
     } else {
       const response = await service.POST_CONTACT({
         userAddress: address,
