@@ -23,7 +23,7 @@ import type { CustomTagProps } from "rc-select/lib/BaseSelect";
 // import { TransactionHistory } from "../TransactionHistoryTable";
 // import { currencyFormat, weiToEther } from "../../services/numberServices";
 import service from "../../services/apiService";
-import { TransactionHistory } from "../../pages/app/transaction/Table";
+import { TransactionHistory } from "../../pages/transaction/Table";
 import { ethers } from "ethers";
 import { Option } from "antd/lib/mentions";
 import { RootState } from "../../store/store";
