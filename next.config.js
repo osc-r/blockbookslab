@@ -26,6 +26,16 @@ const nextConfig = {
       },
     ];
   },
+  async rewrites() {
+    return {
+      fallback: [
+        {
+          source: "/api/:path*",
+          destination: `${ENDPOINT}/api/v1/:path*`, // Proxy to Backend
+        },
+      ],
+    };
+  },
   images: {
     domains: ["cryptoicons.org"],
   },

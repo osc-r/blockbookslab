@@ -2,14 +2,12 @@ import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
 import { TransactionHistory } from "../pages/transaction/Table";
 import { IContact, ILabel, IWallet } from "../store/appSlice";
 
-const ENDPOINT = process.env.NEXT_PUBLIC_API_ENDPOINT;
+export const instance = axios.create({});
 
-export const instance = axios.create({
-  // baseURL: ENDPOINT,
-});
-
-const successHandler = <T>(response: AxiosResponse<T>) => {
-  return { success: true, data: response.data };
+const successHandler = <T>(
+  response: AxiosResponse<{ success: boolean; data: T }>
+) => {
+  return { success: true, data: response.data.data };
 };
 
 const errorHandler = (error: AxiosError) => {
@@ -32,6 +30,11 @@ const errorHandler = (error: AxiosError) => {
   return { success: false, data: null };
 };
 
+type BaseResponse<T> = {
+  success: boolean;
+  data: T;
+};
+
 const serviceInstance = async <T>(
   method: string,
   url: string,
@@ -41,29 +44,23 @@ const serviceInstance = async <T>(
   switch (method) {
     case "POST":
       return instance
-        .post<T>(url, data, config)
-        .then(successHandler<T>)
+        .post<BaseResponse<T>>(url, data, config)
+        .then(successHandler)
         .catch(errorHandler);
     case "PUT":
       return instance
-        .put<T>(url, data, config)
-        .then(successHandler<T>)
+        .put<BaseResponse<T>>(url, data, config)
+        .then(successHandler)
         .catch(errorHandler);
     default:
       return instance
-        .get<T>(url, config)
-        .then(successHandler<T>)
+        .get<BaseResponse<T>>(url, config)
+        .then(successHandler)
         .catch(errorHandler);
   }
 };
 
 const service = {
-  POST_FETCH_TRANSACTIONS: (userAddress: string) => {
-    return serviceInstance("POST", `/transaction/1/${userAddress}`);
-  },
-  GET_FETCH_TRANSACTIONS_STATUS: (userAddress: string) => {
-    return serviceInstance("GET", `/transaction/${userAddress}`);
-  },
   GET_TRANSACTIONS: (options: { current: string; limit: string }) => {
     return serviceInstance<{
       txList: TransactionHistory[];
@@ -71,30 +68,6 @@ const service = {
     }>("GET", `/api/transactions`, {
       params: { current: options.current, limit: options.limit },
     });
-  },
-  GET_ACTION_BY_TX_HASH: (txHash: string) => {
-    return serviceInstance("GET", `/action/${txHash}`);
-  },
-  PUT_ADD_LABEL_ON_TX: ({
-    txHash,
-    label,
-  }: {
-    txHash: string;
-    label: string;
-  }) => {
-    return serviceInstance("PUT", `/label/${txHash}/${label}`);
-  },
-  GET_LABEL_BY_TX_HASH: (txHash: string) => {
-    return serviceInstance("GET", `/label/${txHash}}`);
-  },
-  POST_ADD_CONTACT: ({ addr, name }: { addr: string; name: string }) => {
-    return serviceInstance("POST", `/contact/${addr}/${name}`);
-  },
-  GET_CONTACT_BY_ADDR: (addr: string) => {
-    return serviceInstance("POST", `/contact/${addr}`);
-  },
-  PUT_ADD_MEMO: ({ txHash, memo }: { txHash: string; memo: string | null }) => {
-    return serviceInstance("PUT", `/memo/${txHash}/${memo}`);
   },
   GET_LABELS: () => {
     return serviceInstance<ILabel[]>("GET", `/api/labels`);
@@ -106,7 +79,7 @@ const service = {
     return serviceInstance<IWallet[]>("GET", `/api/wallets`);
   },
   GET_NONCE: () => {
-    return serviceInstance<string>("GET", `/api/login/nonce`);
+    return serviceInstance<string>("GET", `/api/auth/nonce`);
   },
   POST_VERIFY: ({
     signature,
@@ -117,7 +90,7 @@ const service = {
   }) => {
     return serviceInstance<any>(
       "POST",
-      `/api/login/verify`,
+      `/api/auth/verify`,
       {},
       { signature, message }
     );
@@ -125,17 +98,17 @@ const service = {
   POST_TX_DETAILS: ({
     txHash,
     memo,
-    labels,
+    txLabels,
   }: {
     txHash: string;
     memo: string | null;
-    labels: number[];
+    txLabels: number[];
   }) => {
     return serviceInstance(
       "POST",
       `/api/transactions/details`,
       {},
-      { txHash, memo, labels }
+      { txHash, memo, txLabels }
     );
   },
   POST_TX_MEMO: ({ txHash, memo }: { txHash: string; memo: string | null }) => {
@@ -148,48 +121,37 @@ const service = {
   },
   POST_TX_LABELS: ({
     txHash,
-    labels,
+    txLabels,
   }: {
     txHash: string;
-    labels: number[];
+    txLabels: number[];
   }) => {
     return serviceInstance(
       "POST",
       `/api/transactions/details/labels`,
       {},
-      { txHash, labels }
+      { txHash, txLabels }
     );
   },
-  POST_WALLET: ({
-    userAddress,
-    name,
-  }: {
-    userAddress: string;
-    name: string;
-  }) => {
+  POST_WALLET: ({ address, name }: { address: string; name: string }) => {
     return serviceInstance<{ isSynced: boolean }>(
       "POST",
       `/api/wallets`,
       {},
       {
-        userAddress,
+        address,
         name,
+        chain_id: "1",
       }
     );
   },
-  POST_CONTACT: ({
-    userAddress,
-    name,
-  }: {
-    userAddress: string;
-    name: string;
-  }) => {
+  POST_CONTACT: ({ address, name }: { address: string; name: string }) => {
     return serviceInstance(
       "POST",
       `/api/contacts`,
       {},
       {
-        userAddress,
+        address,
         name,
       }
     );
@@ -201,9 +163,6 @@ const service = {
       },
       responseType: "blob",
     });
-  },
-  GET_TX_RESULT: ({ address }: { address: string }) => {
-    return serviceInstance<any>("GET", `/api/transactions/results/${address}`);
   },
   POST_LABEL: ({ name }: { name: string }) => {
     return serviceInstance(

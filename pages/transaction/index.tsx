@@ -108,7 +108,7 @@ const TransactionPage = () => {
   const onSubmitTags = async ({ tags }: { tags: number[] }) => {
     const response = await service.POST_TX_LABELS({
       txHash: currentTxHash as string,
-      labels: tags,
+      txLabels: tags,
     });
     response.success && getTx();
   };
@@ -122,7 +122,7 @@ const TransactionPage = () => {
   }) => {
     if (isAddContact.addr === "") {
       const result = await service.POST_WALLET({
-        userAddress: address,
+        address: address,
         name,
       });
       if (result.success && result.data) {
@@ -139,7 +139,7 @@ const TransactionPage = () => {
       }
     } else {
       const response = await service.POST_CONTACT({
-        userAddress: address,
+        address: address,
         name,
       });
       response.success && getTx();
